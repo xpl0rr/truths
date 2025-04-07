@@ -35,14 +35,14 @@ export default function TabLayout() {
         <Tabs.Screen
           name="user-lessons"
           options={{
-            title: 'Submissions',
+            title: 'Community',
             tabBarIcon: ({ color }) => <IconSymbol size={24} name="person.2.fill" color={color} />,
           }}
         />
         <Tabs.Screen
           name="add"
           options={{
-            title: 'Add New',
+            title: 'Admin Add',
             tabBarIcon: ({ color }) => <IconSymbol size={24} name="plus.circle.fill" color={color} />,
           }}
         />

@@ -8,9 +8,10 @@ import { Colors } from '@/constants/Colors';
 
 interface AddLessonFormProps {
   onSubmit: (lesson: string, anecdote: string) => void;
+  adminMode?: boolean;
 }
 
-export function AddLessonForm({ onSubmit }: AddLessonFormProps) {
+export function AddLessonForm({ onSubmit, adminMode = false }: AddLessonFormProps) {
   const [lesson, setLesson] = useState('');
   const [anecdote, setAnecdote] = useState('');
   const [isFormVisible, setIsFormVisible] = useState(false);
@@ -36,24 +37,28 @@ export function AddLessonForm({ onSubmit }: AddLessonFormProps) {
   const placeholderColor = 'rgba(0, 0, 0, 0.5)';
   const textColor = '#000';
 
+  const buttonColor = adminMode ? '#F44336' : '#4A90E2';
+
   return (
     <View style={styles.container}>
       {!isFormVisible ? (
-        <TouchableOpacity 
-          style={styles.addButton} 
+        <TouchableOpacity
+          style={[styles.addButton, { backgroundColor: buttonColor }]}
           onPress={toggleForm}
           activeOpacity={0.8}>
-          <ThemedText style={styles.addButtonText}>Add Life Lesson</ThemedText>
+          <ThemedText style={styles.addButtonText}>
+            {adminMode ? 'Add Official Lesson' : 'Add New Lesson'}
+          </ThemedText>
         </TouchableOpacity>
       ) : (
-        <BlurView 
-          intensity={90} 
-          tint="light" 
+        <BlurView
+          intensity={90}
+          tint="light"
           style={styles.formContainer}>
           <ThemedText type="subtitle" style={styles.formTitle}>
-            Share Your Wisdom
+            {adminMode ? 'Add to Gramma Said' : 'Share Your Wisdom'}
           </ThemedText>
-          
+
           <TextInput
             placeholder="Life lesson (e.g. 'Patience is a virtue')"
             placeholderTextColor={placeholderColor}
@@ -61,8 +66,9 @@ export function AddLessonForm({ onSubmit }: AddLessonFormProps) {
             onChangeText={setLesson}
             style={[styles.input, { backgroundColor: inputBgColor, color: textColor }]}
             maxLength={100}
+            contextMenuHidden={false}
           />
-          
+
           <TextInput
             placeholder="Tell a short anecdote about this lesson..."
             placeholderTextColor={placeholderColor}
@@ -71,17 +77,21 @@ export function AddLessonForm({ onSubmit }: AddLessonFormProps) {
             style={[styles.input, styles.textArea, { backgroundColor: inputBgColor, color: textColor }]}
             multiline
             maxLength={500}
+            textAlignVertical="top"
+            autoCapitalize="sentences"
+            contextMenuHidden={false}
+            editable={true}
           />
-          
+
           <View style={styles.buttonRow}>
-            <TouchableOpacity 
-              style={[styles.button, styles.cancelButton]} 
+            <TouchableOpacity
+              style={[styles.button, styles.cancelButton]}
               onPress={toggleForm}>
               <ThemedText style={styles.buttonText}>Cancel</ThemedText>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.button, styles.submitButton]} 
+
+            <TouchableOpacity
+              style={[styles.button, styles.submitButton, { backgroundColor: buttonColor }]}
               onPress={handleSubmit}>
               <ThemedText style={styles.submitButtonText}>Submit</ThemedText>
             </TouchableOpacity>

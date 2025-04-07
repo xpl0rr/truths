@@ -3,7 +3,7 @@ import { Lesson, sampleLessons } from '../models/Lesson';
 
 interface LessonContextType {
   lessons: Lesson[];
-  addLesson: (lesson: string, anecdote: string, userId: string, userName: string) => void;
+  addLesson: (lesson: string, anecdote: string, userId: string, userName: string, isApproved?: boolean, isUserSubmitted?: boolean) => void;
   voteLesson: (lessonId: string, userId: string, voteType: 'up' | 'down' | null) => void;
   approveLesson: (lessonId: string) => void;
   getApprovedLessons: () => Lesson[];
@@ -81,7 +81,14 @@ export function LessonProvider({
     checkForApproval();
   }, [lessons.map(l => l.upvotes).join(',')]);
 
-  const addLesson = (lesson: string, anecdote: string, userId: string, userName: string) => {
+  const addLesson = (
+    lesson: string,
+    anecdote: string,
+    userId: string,
+    userName: string,
+    isApproved = false,
+    isUserSubmitted = true
+  ) => {
     const newLesson: Lesson = {
       id: Date.now().toString(),
       lesson,
@@ -92,8 +99,8 @@ export function LessonProvider({
       createdAt: new Date(),
       userId,
       userName,
-      isUserSubmitted: true,
-      isApproved: false,
+      isUserSubmitted,
+      isApproved,
       approvalThreshold: currentThreshold
     };
 
