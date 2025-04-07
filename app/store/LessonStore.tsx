@@ -41,26 +41,38 @@ export function LessonProvider({
     );
   };
 
-  // Calculate vote ratio for sorting
-  const getVoteRatio = (lesson: Lesson) => {
-    // Avoid division by zero and give more weight to lessons with more votes
+  // Simple but effective sorting score calculation
+  const getSortScore = (lesson: Lesson) => {
     const totalVotes = lesson.upvotes + lesson.downvotes;
     if (totalVotes === 0) return 0;
 
-    // Simple ratio calculation with a minimal vote count to prevent single votes from dominating
-    const ratio = lesson.upvotes / (totalVotes || 1);
+    // Simple percentage calculation
+    const percentage = lesson.upvotes / totalVotes;
 
-    // Apply a weight factor based on total votes to favor lessons with more community engagement
-    // This helps prevent a lesson with 1 upvote and 0 downvotes (100%) from outranking one with 50 upvotes and 5 downvotes (91%)
-    const weight = Math.min(1, Math.log(totalVotes + 1) / Math.log(20)); // Logarithmic scaling
+    // Add a small bonus based on total votes to ensure that
+    // with equal percentages, more votes ranks higher
+    // But this won't override a higher percentage
+    const voteCountBonus = Math.min(0.01, totalVotes / 1000);
 
-    return ratio * weight + (lesson.upvotes * 0.01); // Tiebreaker for equal ratios
+    return percentage + voteCountBonus;
   };
 
-  // Sort lessons by vote ratio
+  // Sort lessons by vote ratio - higher percentages should be first
   const getSortedLessons = (lessonList: Lesson[]) => {
     return [...lessonList].sort((a, b) => {
-      return getVoteRatio(b) - getVoteRatio(a);
+      // Get simple percentage for each lesson
+      const scoreA = getSortScore(a);
+      const scoreB = getSortScore(b);
+
+      // Higher percentage first
+      if (scoreB !== scoreA) {
+        return scoreB - scoreA;
+      }
+
+      // If percentages are exactly the same, sort by total votes
+      const votesA = a.upvotes + a.downvotes;
+      const votesB = b.upvotes + b.downvotes;
+      return votesB - votesA;
     });
   };
 

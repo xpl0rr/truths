@@ -35,7 +35,7 @@ export function LessonCard({ lesson, userId, onVote }: LessonCardProps) {
     setExpanded(!expanded);
   };
 
-  // Calculate popularity percentage
+  // Calculate raw popularity percentage
   const totalVotes = lesson.upvotes + lesson.downvotes;
   const popularityPercentage = totalVotes === 0
     ? 0
@@ -43,9 +43,9 @@ export function LessonCard({ lesson, userId, onVote }: LessonCardProps) {
 
   // Determine color based on ratio
   const getRatioColor = () => {
-    if (popularityPercentage >= 75) return '#4CAF50'; // Green
-    if (popularityPercentage >= 50) return '#FFC107'; // Yellow
-    return '#F44336'; // Red
+    if (popularityPercentage >= 75) return '#4CAF50'; // Green for 75%+ approval
+    if (popularityPercentage >= 50) return '#FFC107'; // Yellow for 50-74% approval
+    return '#F44336'; // Red for <50% approval
   };
 
   return (
@@ -82,7 +82,7 @@ export function LessonCard({ lesson, userId, onVote }: LessonCardProps) {
                     </ThemedText>
                   </View>
                   <ThemedText style={styles.votesTotalText}>
-                    ({totalVotes} vote{totalVotes !== 1 ? 's' : ''})
+                    ({lesson.upvotes}/{totalVotes})
                   </ThemedText>
                 </View>
               )}
@@ -132,7 +132,7 @@ export function LessonCard({ lesson, userId, onVote }: LessonCardProps) {
               />
             </View>
             <ThemedText style={styles.progressText}>
-              Community rating: {popularityPercentage}%
+              {lesson.upvotes} upvotes of {totalVotes} total votes ({popularityPercentage}%)
             </ThemedText>
           </View>
         )}

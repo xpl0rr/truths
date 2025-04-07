@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, FlatList, SafeAreaView, View } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
@@ -13,6 +13,18 @@ export default function UserLessonsScreen() {
 
     // Get user-submitted lessons that aren't approved yet
     const userSubmittedLessons = getUserSubmittedLessons();
+
+    // Debug sorting - verify in the console that higher percentages are first
+    useEffect(() => {
+        if (__DEV__ && userSubmittedLessons.length > 0) {
+            console.log('Sorted lessons:');
+            userSubmittedLessons.forEach(lesson => {
+                const total = lesson.upvotes + lesson.downvotes;
+                const percentage = total > 0 ? (lesson.upvotes / total) * 100 : 0;
+                console.log(`- ${lesson.lesson}: ${lesson.upvotes}/${total} = ${percentage.toFixed(1)}%`);
+            });
+        }
+    }, [userSubmittedLessons]);
 
     const handleVote = (lessonId: string, userId: string, voteType: 'up' | 'down' | null) => {
         voteLesson(lessonId, userId, voteType);
