@@ -1,74 +1,80 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import React from 'react';
+import { StyleSheet, FlatList, SafeAreaView, View } from 'react-native';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { LessonCard } from '@/components/LessonCard';
+import { useLessons } from '../store/LessonStore';
 
-export default function HomeScreen() {
+export default function LessonsScreen() {
+  // In a real app, we would get the userId from auth
+  const userId = 'user123';
+  const { lessons, voteLesson } = useLessons();
+  
+  const handleVote = (lessonId: string, userId: string, voteType: 'up' | 'down' | null) => {
+    voteLesson(lessonId, userId, voteType);
+  };
+
+  const renderLessonCard = ({ item }: { item: typeof lessons[0] }) => (
+    <LessonCard 
+      lesson={item} 
+      userId={userId} 
+      onVote={handleVote} 
+    />
+  );
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <ThemedText type="title" style={styles.titleText}>Life Lessons</ThemedText>
+        </View>
+        
+        {lessons.length > 0 ? (
+          <FlatList
+            data={lessons}
+            renderItem={renderLessonCard}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.lessonsList}
+          />
+        ) : (
+          <ThemedView style={styles.emptyState}>
+            <ThemedText style={styles.emptyStateText}>
+              No lessons yet. Be the first to add one!
+            </ThemedText>
+          </ThemedView>
+        )}
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: {
+    flex: 1,
+    backgroundColor: 'white',
+  },
+  header: {
+    paddingHorizontal: 4,
+    paddingTop: 4,
+    paddingBottom: 2,
+    backgroundColor: '#A1CEDC',
     alignItems: 'center',
-    gap: 8,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  titleText: {
+    fontWeight: 'normal',
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  lessonsList: {
+    padding: 4,
+  },
+  emptyState: {
+    padding: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyStateText: {
+    textAlign: 'center',
+    opacity: 0.7,
+    fontSize: 12,
   },
 });
