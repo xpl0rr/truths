@@ -1,0 +1,14 @@
+{
+  "git.enableSmartCommit": true,
+  "git.confirmSync": false,
+  "git.autofetch": false,
+  "git.autoStash": false,
+  "git.autoRepositoryDetection": false,
+  "git.fetchOnPull": false,
+  "git.showPushSuccessNotification": false,
+  "git.promptToSaveFilesBeforeCommit": "always",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": true
+  }
+} 

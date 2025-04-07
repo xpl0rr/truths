@@ -6,6 +6,11 @@ export interface Lesson {
   downvotes: number;
   voters: Record<string, 'up' | 'down' | null>;
   createdAt: Date;
+  userId: string;
+  userName: string;
+  isUserSubmitted: boolean;
+  isApproved: boolean;
+  approvalThreshold: number;
 }
 
 // Sample data for testing
@@ -17,7 +22,12 @@ export const sampleLessons: Lesson[] = [
     upvotes: 5,
     downvotes: 2,
     voters: {},
-    createdAt: new Date('2023-01-15')
+    createdAt: new Date('2023-01-15'),
+    userId: 'admin1',
+    userName: 'Admin',
+    isUserSubmitted: false,
+    isApproved: true,
+    approvalThreshold: 10
   },
   {
     id: '2',
@@ -26,7 +36,12 @@ export const sampleLessons: Lesson[] = [
     upvotes: 10,
     downvotes: 0,
     voters: {},
-    createdAt: new Date('2023-02-10')
+    createdAt: new Date('2023-02-10'),
+    userId: 'admin1',
+    userName: 'Admin',
+    isUserSubmitted: false,
+    isApproved: true,
+    approvalThreshold: 10
   },
   {
     id: '3',
@@ -35,6 +50,39 @@ export const sampleLessons: Lesson[] = [
     upvotes: 7,
     downvotes: 1,
     voters: {},
-    createdAt: new Date('2023-03-22')
+    createdAt: new Date('2023-03-22'),
+    userId: 'admin1',
+    userName: 'Admin',
+    isUserSubmitted: false,
+    isApproved: true,
+    approvalThreshold: 10
+  },
+  {
+    id: '4',
+    lesson: 'Forgiveness heals both sides',
+    anecdote: 'After years of not speaking to my brother over a fight, I finally reached out. The weight that lifted from both of us showed me that forgiveness is more about your own healing than the other person.',
+    upvotes: 8,
+    downvotes: 2,
+    voters: {},
+    createdAt: new Date('2023-04-05'),
+    userId: 'user123',
+    userName: 'Jane',
+    isUserSubmitted: true,
+    isApproved: false,
+    approvalThreshold: 10
+  },
+  {
+    id: '5',
+    lesson: 'Embrace failure as a teacher',
+    anecdote: 'My first business failed spectacularly, losing me everything. But those lessons helped me build a successful second venture. I wouldn\'t have succeeded without first failing.',
+    upvotes: 6,
+    downvotes: 1,
+    voters: {},
+    createdAt: new Date('2023-05-10'),
+    userId: 'user456',
+    userName: 'Mark',
+    isUserSubmitted: true,
+    isApproved: false,
+    approvalThreshold: 10
   }
 ]; 

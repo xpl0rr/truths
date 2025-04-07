@@ -28,8 +28,15 @@ export default function TabLayout() {
         <Tabs.Screen
           name="index"
           options={{
-            title: 'Life Lessons',
+            title: 'Gramma Said',
             tabBarIcon: ({ color }) => <IconSymbol size={24} name="lightbulb.fill" color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="user-lessons"
+          options={{
+            title: 'Submissions',
+            tabBarIcon: ({ color }) => <IconSymbol size={24} name="person.2.fill" color={color} />,
           }}
         />
         <Tabs.Screen
@@ -37,13 +44,6 @@ export default function TabLayout() {
           options={{
             title: 'Add New',
             tabBarIcon: ({ color }) => <IconSymbol size={24} name="plus.circle.fill" color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="profile"
-          options={{
-            title: 'My Lessons',
-            tabBarIcon: ({ color }) => <IconSymbol size={24} name="person.fill" color={color} />,
           }}
         />
       </Tabs>

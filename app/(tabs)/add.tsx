@@ -10,14 +10,17 @@ import { useLessons } from '../store/LessonStore';
 
 export default function AddLessonScreen() {
   const { addLesson } = useLessons();
-  
+  // In a real app, this would come from authentication
+  const userId = 'user123';
+  const userName = 'Jane Doe';
+
   const handleAddLesson = (lesson: string, anecdote: string) => {
-    addLesson(lesson, anecdote);
+    addLesson(lesson, anecdote, userId, userName);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    
-    // Navigate back to the lessons list
+
+    // Navigate to the user lessons tab
     setTimeout(() => {
-      router.navigate('/(tabs)');
+      router.navigate('/(tabs)/user-lessons');
     }, 300);
   };
 
@@ -25,17 +28,17 @@ export default function AddLessonScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <ThemedText type="title" style={styles.titleText}>Add New Lesson</ThemedText>
+          <ThemedText type="title" style={styles.titleText}>Submit a Lesson</ThemedText>
         </View>
-        
+
         <ScrollView>
           <ThemedView style={styles.content}>
             <ThemedText style={styles.description}>
-              What life lesson have you learned that could benefit others? Add a brief anecdote that illustrates this wisdom.
+              Share a life lesson you've learned that could benefit others. The best submissions may be featured on the main page.
             </ThemedText>
-            
+
             <AddLessonForm onSubmit={handleAddLesson} />
-            
+
             <ThemedText style={styles.tips}>
               Tips:
             </ThemedText>
@@ -47,6 +50,9 @@ export default function AddLessonScreen() {
             </ThemedText>
             <ThemedText style={styles.tipItem}>
               • Focus on universal truths that others can apply
+            </ThemedText>
+            <ThemedText style={styles.tipItem}>
+              • Popular submissions get more visibility
             </ThemedText>
           </ThemedView>
         </ScrollView>
