@@ -13,9 +13,10 @@ interface LessonCardProps {
   lesson: Lesson;
   userId: string;
   onVote: (lessonId: string, userId: string, voteType: 'up' | 'down' | null) => void;
+  onSelect?: (lesson: Lesson) => void;
 }
 
-export function LessonCard({ lesson, userId, onVote }: LessonCardProps) {
+export function LessonCard({ lesson, userId, onVote, onSelect }: LessonCardProps) {
   const [expanded, setExpanded] = useState(false);
 
   const userVote = lesson.voters[userId] || null;
@@ -30,9 +31,16 @@ export function LessonCard({ lesson, userId, onVote }: LessonCardProps) {
     onVote(lesson.id, userId, newVoteType);
   };
 
-  const toggleExpand = () => {
+  const handlePress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setExpanded(!expanded);
+
+    // If onSelect is provided, use it for full-screen view
+    if (onSelect) {
+      onSelect(lesson);
+    } else {
+      // Otherwise fallback to the old expand behavior
+      setExpanded(!expanded);
+    }
   };
 
   // Calculate raw popularity percentage
@@ -51,7 +59,7 @@ export function LessonCard({ lesson, userId, onVote }: LessonCardProps) {
   return (
     <TouchableOpacity
       activeOpacity={0.7}
-      onPress={toggleExpand}
+      onPress={handlePress}
       style={styles.cardWrapper}
     >
       <BlurView
@@ -137,18 +145,21 @@ export function LessonCard({ lesson, userId, onVote }: LessonCardProps) {
           </View>
         )}
 
-        <SimpleCollapsible collapsed={!expanded}>
-          <ThemedView style={styles.anecdoteContainer}>
-            <ThemedText style={styles.anecdoteText}>
-              {lesson.anecdote}
-            </ThemedText>
-            {lesson.isApproved && lesson.isUserSubmitted && (
-              <View style={styles.approvedBadge}>
-                <ThemedText style={styles.approvedText}>FEATURED</ThemedText>
-              </View>
-            )}
-          </ThemedView>
-        </SimpleCollapsible>
+        {/* Only show collapsible when onSelect is not provided */}
+        {!onSelect && (
+          <SimpleCollapsible collapsed={!expanded}>
+            <ThemedView style={styles.anecdoteContainer}>
+              <ThemedText style={styles.anecdoteText}>
+                {lesson.anecdote}
+              </ThemedText>
+              {lesson.isApproved && lesson.isUserSubmitted && (
+                <View style={styles.approvedBadge}>
+                  <ThemedText style={styles.approvedText}>FEATURED</ThemedText>
+                </View>
+              )}
+            </ThemedView>
+          </SimpleCollapsible>
+        )}
       </BlurView>
     </TouchableOpacity>
   );

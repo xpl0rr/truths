@@ -1,5 +1,7 @@
-import React from 'react';
-import { StyleSheet, FlatList, SafeAreaView, View } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, FlatList, SafeAreaView, View, TouchableOpacity, Text, ScrollView } from 'react-native';
+import { AntDesign } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -10,6 +12,7 @@ export default function LessonsScreen() {
   // In a real app, we would get the userId from auth
   const userId = 'user123';
   const { voteLesson, getApprovedLessons } = useLessons();
+  const [selectedLesson, setSelectedLesson] = useState(null);
 
   // Only show approved lessons in the main list
   const approvedLessons = getApprovedLessons();
@@ -18,13 +21,68 @@ export default function LessonsScreen() {
     voteLesson(lessonId, userId, voteType);
   };
 
+  const handleOpenLesson = (lesson) => {
+    console.log("Opening lesson:", lesson.lesson);
+    console.log("Anecdote length:", lesson.anecdote.length);
+    setSelectedLesson(lesson);
+  };
+
+  const handleCloseLesson = () => {
+    setSelectedLesson(null);
+  };
+
   const renderLessonCard = ({ item }: { item: typeof approvedLessons[0] }) => (
     <LessonCard
       lesson={item}
       userId={userId}
       onVote={handleVote}
+      onSelect={handleOpenLesson}
     />
   );
+
+  // Show full screen lesson if one is selected
+  if (selectedLesson) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.fullScreenHeader}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={handleCloseLesson}
+            activeOpacity={0.7}
+          >
+            <AntDesign name="arrowleft" size={24} color="#000" />
+            <Text style={styles.backText}>Back</Text>
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView style={styles.scrollView}>
+          <View style={styles.fullScreenContent}>
+            <ThemedText type="title" style={styles.fullScreenTitle}>
+              {selectedLesson.lesson}
+            </ThemedText>
+
+            {selectedLesson.isUserSubmitted && (
+              <ThemedText style={styles.fullScreenSubmitter}>
+                by {selectedLesson.userName}
+              </ThemedText>
+            )}
+
+            <ThemedView style={styles.fullScreenAnecdoteContainer}>
+              <ThemedText style={styles.fullScreenAnecdote}>
+                {selectedLesson.anecdote}
+              </ThemedText>
+
+              {__DEV__ && (
+                <Text style={styles.debugText}>
+                  Anecdote length: {selectedLesson.anecdote.length} characters
+                </Text>
+              )}
+            </ThemedView>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -98,4 +156,53 @@ const styles = StyleSheet.create({
     opacity: 0.7,
     fontSize: 12,
   },
+  // Full screen styles
+  fullScreenHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#A1CEDC',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backText: {
+    marginLeft: 8,
+    fontSize: 16,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  fullScreenContent: {
+    padding: 16,
+  },
+  fullScreenTitle: {
+    fontSize: 24,
+    marginBottom: 8,
+  },
+  fullScreenSubmitter: {
+    marginBottom: 16,
+    fontSize: 14,
+    opacity: 0.7,
+  },
+  fullScreenAnecdoteContainer: {
+    padding: 16,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 8,
+  },
+  fullScreenAnecdote: {
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  debugText: {
+    marginTop: 20,
+    fontSize: 12,
+    color: '#666',
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    padding: 10,
+    borderRadius: 4,
+  }
 });

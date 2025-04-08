@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity } from 'react-native';
+import { StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView, Text, Alert } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import { AntDesign } from '@expo/vector-icons';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -13,6 +14,7 @@ export default function UserLessonsScreen() {
     const userId = 'user123';
     const userName = 'Jane Doe';
     const { voteLesson, getUserSubmittedLessons, addLesson } = useLessons();
+    const [selectedLesson, setSelectedLesson] = useState(null);
 
     // Get user-submitted lessons that aren't approved yet
     const userSubmittedLessons = getUserSubmittedLessons();
@@ -38,14 +40,60 @@ export default function UserLessonsScreen() {
         voteLesson(lessonId, userId, voteType);
     };
 
+    const handleOpenLesson = (lesson) => {
+        console.log("Opening lesson:", lesson.lesson);
+        console.log("Anecdote length:", lesson.anecdote.length);
+        setSelectedLesson(lesson);
+    };
+
+    const handleCloseLesson = () => {
+        setSelectedLesson(null);
+    };
+
+    const validateInputs = () => {
+        if (!newLesson.trim()) {
+            Alert.alert('Error', 'Please enter a lesson title');
+            return false;
+        }
+
+        if (!newAnecdote.trim()) {
+            Alert.alert('Error', 'Please enter an anecdote');
+            return false;
+        }
+
+        if (newAnecdote.trim().length < 10) {
+            Alert.alert('Error', 'Anecdote is too short (minimum 10 characters)');
+            return false;
+        }
+
+        return true;
+    };
+
     const handleSubmitLesson = () => {
-        if (newLesson.trim() && newAnecdote.trim()) {
-            addLesson(newLesson, newAnecdote, userId, userName);
+        if (!validateInputs()) {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+            return;
+        }
+
+        try {
+            console.log("Submitting new lesson:", newLesson.trim());
+            console.log("Anecdote content:", newAnecdote);
+            console.log("Anecdote length:", newAnecdote.length);
+
+            // Add the lesson with the raw anecdote - no need for special formatting
+            addLesson(newLesson.trim(), newAnecdote, userId, userName);
+
+            // Success feedback
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            Alert.alert('Success', 'Your lesson has been submitted to the community!');
+
+            // Clear form and close it
             setNewLesson('');
             setNewAnecdote('');
             setIsAddingLesson(false);
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        } else {
+        } catch (error) {
+            console.error('Error submitting lesson:', error);
+            Alert.alert('Error', 'Failed to submit lesson. Please try again.');
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         }
     };
@@ -55,14 +103,63 @@ export default function UserLessonsScreen() {
             lesson={item}
             userId={userId}
             onVote={handleVote}
+            onSelect={handleOpenLesson}
         />
     );
 
     const inputBgColor = 'rgba(255, 255, 255, 0.7)';
 
+    // Show full screen lesson if one is selected
+    if (selectedLesson) {
+        return (
+            <SafeAreaView style={styles.container}>
+                <View style={styles.fullScreenHeader}>
+                    <TouchableOpacity
+                        style={styles.backButton}
+                        onPress={handleCloseLesson}
+                        activeOpacity={0.7}
+                    >
+                        <AntDesign name="arrowleft" size={24} color="#000" />
+                        <Text style={styles.backText}>Back</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <ScrollView style={styles.scrollView}>
+                    <View style={styles.fullScreenContent}>
+                        <ThemedText type="title" style={styles.fullScreenTitle}>
+                            {selectedLesson.lesson}
+                        </ThemedText>
+
+                        {selectedLesson.isUserSubmitted && (
+                            <ThemedText style={styles.fullScreenSubmitter}>
+                                by {selectedLesson.userName}
+                            </ThemedText>
+                        )}
+
+                        <ThemedView style={styles.fullScreenAnecdoteContainer}>
+                            <ThemedText style={styles.fullScreenAnecdote}>
+                                {selectedLesson.anecdote}
+                            </ThemedText>
+
+                            {__DEV__ && (
+                                <Text style={styles.debugText}>
+                                    Anecdote length: {selectedLesson.anecdote.length} characters
+                                </Text>
+                            )}
+                        </ThemedView>
+                    </View>
+                </ScrollView>
+            </SafeAreaView>
+        );
+    }
+
     return (
         <SafeAreaView style={styles.container}>
-            <View style={styles.container}>
+            <KeyboardAvoidingView
+                style={styles.container}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
+            >
                 <View style={styles.header}>
                     <ThemedText type="title" style={styles.titleText}>Community Submissions</ThemedText>
                     <ThemedText style={styles.subtitle}>
@@ -83,62 +180,65 @@ export default function UserLessonsScreen() {
                         <ThemedText style={styles.addButtonText}>+ Share a lesson</ThemedText>
                     </TouchableOpacity>
                 ) : (
-                    <BlurView intensity={90} tint="light" style={styles.quickSubmitForm}>
-                        <TextInput
-                            placeholder="Life lesson (e.g. 'Patience is a virtue')"
-                            placeholderTextColor="rgba(0, 0, 0, 0.5)"
-                            value={newLesson}
-                            onChangeText={setNewLesson}
-                            style={[styles.input, { backgroundColor: inputBgColor, color: '#000' }]}
-                            maxLength={100}
-                            contextMenuHidden={false}
-                        />
+                    <View style={styles.formContainer}>
+                        <BlurView intensity={90} tint="light" style={styles.quickSubmitForm}>
+                            <ThemedText style={styles.formTitle}>Share Your Wisdom</ThemedText>
 
-                        <TextInput
-                            placeholder="Brief anecdote or explanation..."
-                            placeholderTextColor="rgba(0, 0, 0, 0.5)"
-                            value={newAnecdote}
-                            onChangeText={setNewAnecdote}
-                            style={[styles.input, styles.textArea, { backgroundColor: inputBgColor, color: '#000' }]}
-                            multiline
-                            maxLength={500}
-                            textAlignVertical="top"
-                            autoCapitalize="sentences"
-                            contextMenuHidden={false}
-                            editable={true}
-                        />
+                            <TextInput
+                                placeholder="Life lesson (e.g. 'Patience is a virtue')"
+                                placeholderTextColor="rgba(0, 0, 0, 0.5)"
+                                value={newLesson}
+                                onChangeText={setNewLesson}
+                                style={[styles.input, { backgroundColor: inputBgColor, color: '#000' }]}
+                                maxLength={100}
+                            />
 
-                        <View style={styles.buttonRow}>
-                            <TouchableOpacity
-                                style={styles.cancelButton}
-                                onPress={() => setIsAddingLesson(false)}>
-                                <ThemedText style={styles.buttonText}>Cancel</ThemedText>
-                            </TouchableOpacity>
+                            <TextInput
+                                placeholder="Tell a short anecdote about this lesson..."
+                                placeholderTextColor="rgba(0, 0, 0, 0.5)"
+                                value={newAnecdote}
+                                onChangeText={setNewAnecdote}
+                                style={[styles.input, styles.textArea, { backgroundColor: inputBgColor, color: '#000' }]}
+                                multiline={true}
+                                numberOfLines={8}
+                                maxLength={1000}
+                                textAlignVertical="top"
+                            />
 
-                            <TouchableOpacity
-                                style={styles.submitButton}
-                                onPress={handleSubmitLesson}>
-                                <ThemedText style={styles.submitButtonText}>Submit</ThemedText>
-                            </TouchableOpacity>
-                        </View>
-                    </BlurView>
+                            <View style={styles.buttonRow}>
+                                <TouchableOpacity
+                                    style={styles.cancelButton}
+                                    onPress={() => setIsAddingLesson(false)}>
+                                    <ThemedText style={styles.buttonText}>Cancel</ThemedText>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={styles.submitButton}
+                                    onPress={handleSubmitLesson}>
+                                    <ThemedText style={styles.submitButtonText}>Submit</ThemedText>
+                                </TouchableOpacity>
+                            </View>
+                        </BlurView>
+                    </View>
                 )}
 
-                {userSubmittedLessons.length > 0 ? (
-                    <FlatList
-                        data={userSubmittedLessons}
-                        renderItem={renderLessonCard}
-                        keyExtractor={(item) => item.id}
-                        contentContainerStyle={styles.lessonsList}
-                    />
-                ) : (
-                    <ThemedView style={styles.emptyState}>
-                        <ThemedText style={styles.emptyStateText}>
-                            No community submissions yet. Be the first to add one!
-                        </ThemedText>
-                    </ThemedView>
+                {!isAddingLesson && (
+                    userSubmittedLessons.length > 0 ? (
+                        <FlatList
+                            data={userSubmittedLessons}
+                            renderItem={renderLessonCard}
+                            keyExtractor={(item) => item.id}
+                            contentContainerStyle={styles.lessonsList}
+                        />
+                    ) : (
+                        <ThemedView style={styles.emptyState}>
+                            <ThemedText style={styles.emptyStateText}>
+                                No community submissions yet. Be the first to add one!
+                            </ThemedText>
+                        </ThemedView>
+                    )
                 )}
-            </View>
+            </KeyboardAvoidingView>
         </SafeAreaView>
     );
 }
@@ -188,11 +288,20 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: '#4CAF50',
     },
-    quickSubmitForm: {
+    formContainer: {
         margin: 8,
+        maxHeight: 300,
+    },
+    quickSubmitForm: {
         padding: 8,
         borderRadius: 8,
         gap: 8,
+    },
+    formTitle: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        textAlign: 'center',
+        marginBottom: 4,
     },
     input: {
         borderRadius: 4,
@@ -201,8 +310,9 @@ const styles = StyleSheet.create({
         fontSize: 12,
     },
     textArea: {
-        minHeight: 60,
+        minHeight: 120,
         textAlignVertical: 'top',
+        paddingTop: 8,
     },
     buttonRow: {
         flexDirection: 'row',
@@ -239,4 +349,53 @@ const styles = StyleSheet.create({
         opacity: 0.7,
         fontSize: 12,
     },
+    // Full screen styles
+    fullScreenHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 16,
+        backgroundColor: '#A1CEDC',
+        borderBottomWidth: 1,
+        borderBottomColor: '#eee',
+    },
+    backButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    backText: {
+        marginLeft: 8,
+        fontSize: 16,
+    },
+    scrollView: {
+        flex: 1,
+    },
+    fullScreenContent: {
+        padding: 16,
+    },
+    fullScreenTitle: {
+        fontSize: 24,
+        marginBottom: 8,
+    },
+    fullScreenSubmitter: {
+        marginBottom: 16,
+        fontSize: 14,
+        opacity: 0.7,
+    },
+    fullScreenAnecdoteContainer: {
+        padding: 16,
+        backgroundColor: '#f9f9f9',
+        borderRadius: 8,
+    },
+    fullScreenAnecdote: {
+        fontSize: 16,
+        lineHeight: 24,
+    },
+    debugText: {
+        marginTop: 20,
+        fontSize: 12,
+        color: '#666',
+        backgroundColor: 'rgba(0,0,0,0.05)',
+        padding: 10,
+        borderRadius: 4,
+    }
 }); 

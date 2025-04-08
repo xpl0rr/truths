@@ -1,51 +1,375 @@
-import React from 'react';
-import { StyleSheet, SafeAreaView, View, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, SafeAreaView, View, ScrollView, FlatList, TouchableOpacity, Text, Alert, Button } from 'react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import { AntDesign } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { AddLessonForm } from '@/components/AddLessonForm';
+import { LessonCard } from '@/components/LessonCard';
 import { useLessons } from '../store/LessonStore';
 
+// Debug storage keys
+const STORAGE_KEY = 'gramma_lessons_v2';
+
 export default function AddLessonScreen() {
-  const { addLesson } = useLessons();
+  const { addLesson, voteLesson, getApprovedLessons, saveToStorage, loadFromStorage, clearStorage } = useLessons();
+  const [selectedLesson, setSelectedLesson] = useState(null);
+  const [adminLessons, setAdminLessons] = useState([]);
+  const [storageStatus, setStorageStatus] = useState("Checking storage...");
+  const [storageKeys, setStorageKeys] = useState([]);
+
+  // Run AsyncStorage test and update status
+  useEffect(() => {
+    const checkStorage = async () => {
+      try {
+        // Get all storage keys
+        const keys = await AsyncStorage.getAllKeys();
+        setStorageKeys(keys);
+
+        // Check for our main data
+        if (keys.includes(STORAGE_KEY)) {
+          const data = await AsyncStorage.getItem(STORAGE_KEY);
+          if (data) {
+            const parsed = JSON.parse(data);
+            setStorageStatus(`Found ${parsed.length} lessons in storage`);
+          } else {
+            setStorageStatus("Storage exists but is empty");
+          }
+        } else {
+          setStorageStatus("No lesson storage found");
+        }
+      } catch (error) {
+        setStorageStatus(`Error: ${error.message}`);
+      }
+    };
+
+    checkStorage();
+  }, []);
+
   // Admin info
   const userId = 'admin1';
   const userName = 'Admin';
 
-  const handleAddLesson = (lesson: string, anecdote: string) => {
-    // Admin added lessons are automatically approved and not marked as user submitted
-    const directlyApproved = true;
-    const isUserSubmitted = false;
+  // Fetch admin lessons whenever the screen renders
+  useEffect(() => {
+    // Get only official admin lessons (not user-submitted approved ones)
+    const lessons = getApprovedLessons().filter(
+      lesson => !lesson.isUserSubmitted
+    );
 
-    addLesson(lesson, anecdote, userId, userName, directlyApproved, isUserSubmitted);
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    console.log(`Found ${lessons.length} admin lessons`);
+    setAdminLessons(lessons);
+  }, [getApprovedLessons]);
 
-    // Navigate back to the main lessons tab
-    setTimeout(() => {
-      router.navigate('/(tabs)');
-    }, 300);
+  // SIMPLIFIED DEBUG FUNCTIONS
+  const manualCheckStorage = async () => {
+    try {
+      setStorageStatus("Checking storage...");
+
+      // Direct inspection of AsyncStorage
+      const keys = await AsyncStorage.getAllKeys();
+      setStorageKeys(keys);
+
+      if (keys.includes(STORAGE_KEY)) {
+        const data = await AsyncStorage.getItem(STORAGE_KEY);
+        if (data) {
+          const parsed = JSON.parse(data);
+          const adminLessons = parsed.filter(lesson => !lesson.isUserSubmitted);
+          const userLessons = parsed.filter(lesson => lesson.isUserSubmitted);
+
+          setStorageStatus(
+            `Found ${parsed.length} total lessons\n` +
+            `- ${adminLessons.length} admin lessons\n` +
+            `- ${userLessons.length} user lessons`
+          );
+
+          // Show details in an alert
+          Alert.alert(
+            "Storage Data",
+            `Found ${parsed.length} lessons:\n\n` +
+            `Admin lessons: ${adminLessons.length}\n` +
+            `User lessons: ${userLessons.length}\n\n` +
+            `First lesson: "${parsed[0]?.lesson || 'none'}"\n` +
+            `Storage size: ${data.length} bytes`
+          );
+        } else {
+          setStorageStatus("Storage exists but is empty");
+          Alert.alert("Storage Empty", "Storage key exists but has no data");
+        }
+      } else {
+        setStorageStatus("No lesson storage found");
+        Alert.alert("Storage Empty", "No data found for lessons");
+      }
+    } catch (error) {
+      setStorageStatus(`Error: ${error.message}`);
+      Alert.alert("Error", "Failed to check storage: " + error.message);
+    }
   };
+
+  const manualClearStorage = async () => {
+    try {
+      setStorageStatus("Clearing storage...");
+      await AsyncStorage.clear();
+      setStorageStatus("Storage cleared successfully");
+      setStorageKeys([]);
+
+      Alert.alert("Storage Cleared", "All storage has been reset");
+      // Force reload app data
+      await loadFromStorage();
+      // Update adminLessons
+      const lessons = getApprovedLessons().filter(
+        lesson => !lesson.isUserSubmitted
+      );
+      setAdminLessons(lessons);
+    } catch (error) {
+      setStorageStatus(`Clear error: ${error.message}`);
+      Alert.alert("Error", "Failed to clear storage: " + error.message);
+    }
+  };
+
+  const manualSaveLesson = async (lesson, anecdote) => {
+    try {
+      if (!lesson || !anecdote) {
+        Alert.alert("Error", "Please provide both lesson and anecdote");
+        return;
+      }
+
+      console.log("Manually saving lesson:", lesson);
+      console.log("Anecdote:", anecdote);
+      setStorageStatus("Saving lesson...");
+
+      // Create the lesson with admin attributes
+      const newLesson = {
+        id: Date.now().toString(),
+        lesson: lesson.trim(),
+        anecdote: anecdote,
+        upvotes: 0,
+        downvotes: 0,
+        voters: {},
+        createdAt: new Date().toISOString(), // Convert to string for storage
+        userId,
+        userName,
+        isUserSubmitted: false,
+        isApproved: true,
+        approvalThreshold: 10
+      };
+
+      // Get current storage data
+      let currentData = [];
+      const storedData = await AsyncStorage.getItem(STORAGE_KEY);
+      if (storedData) {
+        currentData = JSON.parse(storedData);
+        console.log(`Found ${currentData.length} existing lessons in storage`);
+      }
+
+      // Add new lesson
+      const updatedData = [newLesson, ...currentData];
+
+      // Convert to string and save
+      const jsonValue = JSON.stringify(updatedData);
+      console.log(`Saving ${updatedData.length} lessons (${jsonValue.length} bytes)`);
+
+      try {
+        await AsyncStorage.setItem(STORAGE_KEY, jsonValue);
+        console.log("AsyncStorage.setItem completed successfully");
+        setStorageStatus(`Saved successfully! ${updatedData.length} lessons in storage.`);
+      } catch (err) {
+        console.error("AsyncStorage.setItem failed:", err);
+        setStorageStatus(`Storage error: ${err.message}`);
+        throw err;
+      }
+
+      // Update storage keys
+      const keys = await AsyncStorage.getAllKeys();
+      setStorageKeys(keys);
+
+      // Show success and reload
+      Alert.alert("Success", `Lesson saved directly to storage (total: ${updatedData.length})`, [
+        {
+          text: "OK", onPress: async () => {
+            await loadFromStorage();
+            const updatedLessons = getApprovedLessons().filter(
+              lesson => !lesson.isUserSubmitted
+            );
+            setAdminLessons(updatedLessons);
+          }
+        }
+      ]);
+    } catch (error) {
+      console.error("Error in manualSaveLesson:", error);
+      Alert.alert("Error", "Failed to save lesson: " + error.message);
+      setStorageStatus(`Save failed: ${error.message}`);
+    }
+  };
+
+  const handleAddLesson = (lesson: string, anecdote: string) => {
+    // Use our manual direct save instead
+    manualSaveLesson(lesson, anecdote);
+  };
+
+  const handleVote = (lessonId: string, userId: string, voteType: 'up' | 'down' | null) => {
+    voteLesson(lessonId, userId, voteType);
+
+    // Refresh the admin lessons list after voting
+    const updatedLessons = getApprovedLessons().filter(
+      lesson => !lesson.isUserSubmitted
+    );
+    setAdminLessons(updatedLessons);
+
+    // Force save after vote
+    saveToStorage();
+  };
+
+  const handleOpenLesson = (lesson) => {
+    console.log("Opening admin lesson:", lesson.lesson);
+    console.log("Admin anecdote length:", lesson.anecdote.length);
+    setSelectedLesson(lesson);
+  };
+
+  const handleCloseLesson = () => {
+    setSelectedLesson(null);
+  };
+
+  const renderLessonCard = ({ item }) => (
+    <LessonCard
+      lesson={item}
+      userId={userId}
+      onVote={handleVote}
+      onSelect={handleOpenLesson}
+    />
+  );
+
+  // Show full screen lesson if one is selected
+  if (selectedLesson) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.fullScreenHeader}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={handleCloseLesson}
+            activeOpacity={0.7}
+          >
+            <AntDesign name="arrowleft" size={24} color="#000" />
+            <Text style={styles.backText}>Back</Text>
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView style={styles.scrollView}>
+          <View style={styles.fullScreenContent}>
+            <ThemedText type="title" style={styles.fullScreenTitle}>
+              {selectedLesson.lesson}
+            </ThemedText>
+
+            <ThemedView style={styles.fullScreenAnecdoteContainer}>
+              <ThemedText style={styles.fullScreenAnecdote}>
+                {selectedLesson.anecdote}
+              </ThemedText>
+
+              <Text style={styles.debugText}>
+                Anecdote length: {selectedLesson.anecdote.length} characters
+              </Text>
+            </ThemedView>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <ThemedText type="title" style={styles.titleText}>Admin: Add New Lesson</ThemedText>
+      <View style={styles.header}>
+        <ThemedText type="title" style={styles.titleText}>Admin: Add New Lesson</ThemedText>
+      </View>
+
+      {/* Main content without any padding or scrolling */}
+      <View style={{ flex: 1, width: '100%' }}>
+        {/* Manage Existing Lessons Button */}
+        <TouchableOpacity
+          style={{
+            backgroundColor: '#F44336',
+            paddingVertical: 8,
+            borderRadius: 0, // No rounded corners
+            alignItems: 'center',
+            width: '100%',
+          }}
+          onPress={() => {
+            // Get the latest approved lessons
+            const lessons = getApprovedLessons();
+
+            // Show modal to manage lessons
+            Alert.alert(
+              "Manage Lessons",
+              `Found ${lessons.length} lessons. Select one to delete:`,
+              [
+                { text: "Cancel", style: "cancel" },
+                {
+                  text: "Show All",
+                  onPress: () => {
+                    // For each lesson, create an alert with delete option
+                    if (lessons.length === 0) {
+                      Alert.alert("No Lessons", "There are no lessons to delete.");
+                      return;
+                    }
+
+                    const showNextLesson = (index = 0) => {
+                      if (index >= lessons.length) return;
+
+                      const lesson = lessons[index];
+                      Alert.alert(
+                        `${index + 1}/${lessons.length}: ${lesson.lesson}`,
+                        `Added by: ${lesson.userName}\n\nDelete this lesson?`,
+                        [
+                          { text: "Skip", onPress: () => showNextLesson(index + 1) },
+                          {
+                            text: "Delete", style: "destructive", onPress: async () => {
+                              // Delete the lesson directly from storage
+                              try {
+                                // Get current storage
+                                const data = await AsyncStorage.getItem(STORAGE_KEY);
+                                if (!data) return;
+
+                                // Parse and filter out the lesson to delete
+                                const allLessons = JSON.parse(data);
+                                const updatedLessons = allLessons.filter(l => l.id !== lesson.id);
+
+                                // Save back to storage
+                                await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedLessons));
+
+                                // Reload data
+                                await loadFromStorage();
+
+                                Alert.alert("Success", "Lesson deleted successfully");
+
+                                // Continue with next lesson
+                                showNextLesson(index + 1);
+                              } catch (error) {
+                                Alert.alert("Error", "Failed to delete lesson: " + error.message);
+                              }
+                            }
+                          }
+                        ]
+                      );
+                    };
+
+                    showNextLesson();
+                  }
+                }
+              ]
+            );
+          }}
+        >
+          <Text style={{ color: 'white', fontSize: 14, fontWeight: 'normal' }}>
+            Manage Existing Lessons
+          </Text>
+        </TouchableOpacity>
+
+        {/* Original Add Form */}
+        <View style={{ width: '100%', margin: 0, padding: 0 }}>
+          <AddLessonForm onSubmit={handleAddLesson} adminMode={true} />
         </View>
-
-        <ScrollView>
-          <ThemedView style={styles.adminBanner}>
-            <ThemedText style={styles.adminText}>
-              Admin mode: Lessons added here appear directly on the main page
-            </ThemedText>
-          </ThemedView>
-
-          <ThemedView style={styles.content}>
-            <AddLessonForm onSubmit={handleAddLesson} adminMode={true} />
-          </ThemedView>
-        </ScrollView>
       </View>
     </SafeAreaView>
   );
@@ -80,6 +404,168 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   content: {
+    padding: 0,
+    marginTop: 0,
+  },
+  debugContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginVertical: 10,
+    padding: 8,
+  },
+  existingLessonsHeader: {
+    paddingHorizontal: 8,
+    paddingTop: 16,
+    paddingBottom: 4,
+  },
+  sectionTitle: {
+    fontWeight: 'normal',
+    fontSize: 14,
+  },
+  lessonsList: {
     padding: 4,
+  },
+  emptyState: {
+    padding: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyStateText: {
+    textAlign: 'center',
+    opacity: 0.7,
+    fontSize: 12,
+  },
+  // Full screen styles
+  fullScreenHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#A1CEDC',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backText: {
+    marginLeft: 8,
+    fontSize: 16,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  fullScreenContent: {
+    padding: 16,
+  },
+  fullScreenTitle: {
+    fontSize: 24,
+    marginBottom: 16,
+  },
+  fullScreenAnecdoteContainer: {
+    padding: 16,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 8,
+  },
+  fullScreenAnecdote: {
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  debugText: {
+    marginTop: 20,
+    fontSize: 12,
+    color: '#666',
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    padding: 10,
+    borderRadius: 4,
+  },
+  plainDebugContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-around',
+    marginVertical: 10,
+    padding: 8,
+    gap: 8,
+  },
+  plainButton: {
+    padding: 12,
+    borderRadius: 4,
+    backgroundColor: '#f0f0f0',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    minWidth: 100,
+    alignItems: 'center',
+  },
+  plainButtonText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  storageStatusContainer: {
+    padding: 12,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 8,
+    marginHorizontal: 8,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  storageStatusTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 4,
+    marginTop: 8,
+  },
+  storageStatusText: {
+    fontSize: 12,
+    color: '#333',
+    marginBottom: 8,
+  },
+  refreshButton: {
+    marginTop: 8,
+    padding: 8,
+    borderRadius: 4,
+    backgroundColor: '#007bff',
+    alignSelf: 'center',
+  },
+  refreshButtonText: {
+    fontSize: 14,
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  manageButton: {
+    backgroundColor: '#F44336',
+    paddingVertical: 8,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginHorizontal: 0,
+    marginVertical: 0,
+    marginBottom: 0,
+    width: '100%',
+  },
+  manageButtonText: {
+    color: 'white',
+    fontWeight: 'normal',
+    fontSize: 14,
+  },
+  scrollContent: {
+    padding: 0,
+    paddingTop: 0,
+    width: '100%',
+  },
+  mainContent: {
+    padding: 16,
+  },
+  button: {
+    backgroundColor: '#F44336',
+    paddingVertical: 8,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: 'normal',
+    fontSize: 14,
   },
 }); 

@@ -1,5 +1,9 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Lesson, sampleLessons } from '../models/Lesson';
+
+// Storage key for lessons
+const STORAGE_KEY = 'gramma_lessons_v2';
 
 interface LessonContextType {
   lessons: Lesson[];
@@ -13,6 +17,9 @@ interface LessonContextType {
   setThreshold: (threshold: number) => void;
   currentThreshold: number;
   getSortedLessons: (lessonList: Lesson[]) => Lesson[];
+  saveToStorage: () => Promise<boolean>;
+  loadFromStorage: () => Promise<void>;
+  clearStorage: () => Promise<boolean>;
 }
 
 const LessonContext = createContext<LessonContextType | undefined>(undefined);
@@ -22,12 +29,84 @@ interface LessonProviderProps {
   initialLessons?: Lesson[];
 }
 
+// Replace the saveLessonsToStorage and loadLessonsFromStorage helper functions with this:
+const directSaveToStorage = async (data) => {
+  try {
+    const jsonValue = JSON.stringify(data);
+    console.log(`[STORAGE] Directly saving ${data.length} lessons (${jsonValue.length} bytes)`);
+    await AsyncStorage.setItem(STORAGE_KEY, jsonValue);
+    console.log('[STORAGE] ✅ Direct save completed');
+    return true;
+  } catch (e) {
+    console.error('[STORAGE] ❌ Direct save failed:', e);
+    return false;
+  }
+};
+
+const directLoadFromStorage = async () => {
+  try {
+    const jsonValue = await AsyncStorage.getItem(STORAGE_KEY);
+    if (!jsonValue) {
+      console.log('[STORAGE] No data found with key:', STORAGE_KEY);
+      return null;
+    }
+
+    const data = JSON.parse(jsonValue);
+    console.log(`[STORAGE] ✅ Loaded ${data.length} lessons directly`);
+
+    // Convert dates
+    const formattedData = data.map(item => ({
+      ...item,
+      createdAt: new Date(item.createdAt)
+    }));
+
+    return formattedData;
+  } catch (e) {
+    console.error('[STORAGE] ❌ Direct load failed:', e);
+    return null;
+  }
+};
+
 export function LessonProvider({
   children,
   initialLessons = sampleLessons
 }: LessonProviderProps) {
   const [lessons, setLessons] = useState<Lesson[]>(initialLessons);
   const [currentThreshold, setCurrentThreshold] = useState<number>(10);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Replace the saveToStorage method in the LessonProvider component:
+  const saveToStorage = async (): Promise<boolean> => {
+    const result = await directSaveToStorage(lessons);
+    return result;
+  };
+
+  // Replace the loadFromStorage method in the LessonProvider component:
+  const loadFromStorage = async (): Promise<void> => {
+    const data = await directLoadFromStorage();
+    if (data && data.length > 0) {
+      console.log(`[STORAGE] Setting ${data.length} lessons to state`);
+      setLessons(data);
+    } else {
+      console.log('[STORAGE] Using initial data instead');
+      setLessons(initialLessons);
+      // Save initial data
+      await directSaveToStorage(initialLessons);
+    }
+    setIsInitialized(true);
+  };
+
+  // Load lessons when component mounts
+  useEffect(() => {
+    loadFromStorage();
+  }, []);
+
+  // Save lessons whenever they change (but only after initialization)
+  useEffect(() => {
+    if (isInitialized) {
+      saveToStorage();
+    }
+  }, [lessons, isInitialized]);
 
   // Check for lessons that have reached the approval threshold
   const checkForApproval = () => {
@@ -78,8 +157,10 @@ export function LessonProvider({
 
   // Run approval check whenever votes change
   useEffect(() => {
-    checkForApproval();
-  }, [lessons.map(l => l.upvotes).join(',')]);
+    if (isInitialized) {
+      checkForApproval();
+    }
+  }, [lessons.map(l => l.upvotes).join(','), isInitialized]);
 
   const addLesson = (
     lesson: string,
@@ -89,6 +170,13 @@ export function LessonProvider({
     isApproved = false,
     isUserSubmitted = true
   ) => {
+    // Log for debugging
+    console.log("🆕 Adding new lesson:");
+    console.log("  Title:", lesson);
+    console.log("  Anecdote length:", anecdote.length);
+    console.log("  isApproved:", isApproved);
+    console.log("  isUserSubmitted:", isUserSubmitted);
+
     const newLesson: Lesson = {
       id: Date.now().toString(),
       lesson,
@@ -104,7 +192,17 @@ export function LessonProvider({
       approvalThreshold: currentThreshold
     };
 
-    setLessons(prevLessons => [newLesson, ...prevLessons]);
+    setLessons(prevLessons => {
+      const updatedLessons = [newLesson, ...prevLessons];
+      console.log(`Updated lessons array (${updatedLessons.length} items)`);
+
+      // Immediately save to storage
+      saveToStorage()
+        .then(() => console.log("Saved lessons after adding new one"))
+        .catch(err => console.error("Failed to save after adding lesson:", err));
+
+      return updatedLessons;
+    });
   };
 
   const voteLesson = (lessonId: string, userId: string, voteType: 'up' | 'down' | null) => {
@@ -176,6 +274,18 @@ export function LessonProvider({
     );
   };
 
+  // Add a new method in the value object of the LessonProvider:
+  const clearStorage = async (): Promise<boolean> => {
+    try {
+      await AsyncStorage.removeItem(STORAGE_KEY);
+      console.log('[STORAGE] ✅ Storage cleared successfully');
+      return true;
+    } catch (e) {
+      console.error('[STORAGE] ❌ Failed to clear storage:', e);
+      return false;
+    }
+  };
+
   const value = {
     lessons,
     addLesson,
@@ -187,7 +297,10 @@ export function LessonProvider({
     checkForApproval,
     setThreshold,
     currentThreshold,
-    getSortedLessons
+    getSortedLessons,
+    saveToStorage,
+    loadFromStorage,
+    clearStorage
   };
 
   return (

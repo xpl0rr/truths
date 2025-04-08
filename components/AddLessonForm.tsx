@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TextInput, TouchableOpacity, View, Alert } from 'react-native';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 
@@ -16,14 +16,48 @@ export function AddLessonForm({ onSubmit, adminMode = false }: AddLessonFormProp
   const [anecdote, setAnecdote] = useState('');
   const [isFormVisible, setIsFormVisible] = useState(false);
 
+  const validateInputs = () => {
+    if (!lesson.trim()) {
+      Alert.alert('Error', 'Please enter a lesson title');
+      return false;
+    }
+
+    if (!anecdote.trim()) {
+      Alert.alert('Error', 'Please enter an anecdote');
+      return false;
+    }
+
+    if (anecdote.trim().length < 10) {
+      Alert.alert('Error', 'Anecdote is too short (minimum 10 characters)');
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSubmit = () => {
-    if (lesson.trim() && anecdote.trim()) {
+    if (!validateInputs()) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      return;
+    }
+
+    try {
+      // Log for debugging
+      console.log('Submitting lesson:', lesson.trim());
+      console.log('Anecdote content:', anecdote);
+      console.log('Anecdote length:', anecdote.length);
+
+      // Call the submit handler with the validated inputs
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      onSubmit(lesson, anecdote);
+      onSubmit(lesson.trim(), anecdote);
+
+      // Clear the form
       setLesson('');
       setAnecdote('');
       setIsFormVisible(false);
-    } else {
+    } catch (error) {
+      console.error('Error submitting lesson:', error);
+      Alert.alert('Error', 'Failed to submit lesson. Please try again.');
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
   };
@@ -37,7 +71,7 @@ export function AddLessonForm({ onSubmit, adminMode = false }: AddLessonFormProp
   const placeholderColor = 'rgba(0, 0, 0, 0.5)';
   const textColor = '#000';
 
-  const buttonColor = adminMode ? '#F44336' : '#4A90E2';
+  const buttonColor = adminMode ? '#4CAF50' : '#4A90E2';
 
   return (
     <View style={styles.container}>
@@ -66,7 +100,6 @@ export function AddLessonForm({ onSubmit, adminMode = false }: AddLessonFormProp
             onChangeText={setLesson}
             style={[styles.input, { backgroundColor: inputBgColor, color: textColor }]}
             maxLength={100}
-            contextMenuHidden={false}
           />
 
           <TextInput
@@ -75,12 +108,10 @@ export function AddLessonForm({ onSubmit, adminMode = false }: AddLessonFormProp
             value={anecdote}
             onChangeText={setAnecdote}
             style={[styles.input, styles.textArea, { backgroundColor: inputBgColor, color: textColor }]}
-            multiline
-            maxLength={500}
+            multiline={true}
+            numberOfLines={8}
+            maxLength={1000}
             textAlignVertical="top"
-            autoCapitalize="sentences"
-            contextMenuHidden={false}
-            editable={true}
           />
 
           <View style={styles.buttonRow}>
@@ -104,13 +135,16 @@ export function AddLessonForm({ onSubmit, adminMode = false }: AddLessonFormProp
 
 const styles = StyleSheet.create({
   container: {
-    marginVertical: 8,
+    margin: 0,
+    padding: 0,
+    width: '100%',
   },
   addButton: {
     backgroundColor: '#4A90E2',
     paddingVertical: 8,
-    borderRadius: 8,
+    borderRadius: 0,
     alignItems: 'center',
+    width: '100%',
   },
   addButtonText: {
     color: 'white',
@@ -121,6 +155,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 8,
     gap: 8,
+    width: '100%',
   },
   formTitle: {
     textAlign: 'center',
@@ -134,8 +169,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   textArea: {
-    minHeight: 80,
+    minHeight: 120,
     textAlignVertical: 'top',
+    paddingTop: 8,
   },
   buttonRow: {
     flexDirection: 'row',
