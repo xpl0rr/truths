@@ -205,6 +205,81 @@ export default function AddLessonScreen() {
     }
   };
 
+  // Add a function to update an existing lesson
+  const manualUpdateLesson = async (lessonId, updatedTitle, updatedAnecdote) => {
+    try {
+      if (!updatedTitle || !updatedAnecdote) {
+        Alert.alert("Error", "Please provide both lesson title and anecdote");
+        return;
+      }
+
+      console.log("Updating lesson:", lessonId);
+      console.log("New title:", updatedTitle);
+      console.log("New anecdote:", updatedAnecdote);
+      setStorageStatus("Updating lesson...");
+
+      // Get current storage data
+      const storedData = await AsyncStorage.getItem(STORAGE_KEY);
+      if (!storedData) {
+        Alert.alert("Error", "No lessons found in storage");
+        return;
+      }
+
+      const allLessons = JSON.parse(storedData);
+
+      // Find and update the lesson
+      const updatedLessons = allLessons.map(lesson => {
+        if (lesson.id === lessonId) {
+          return {
+            ...lesson,
+            lesson: updatedTitle.trim(),
+            anecdote: updatedAnecdote,
+            // Keep the rest of the properties unchanged
+          };
+        }
+        return lesson;
+      });
+
+      // Convert to string and save
+      const jsonValue = JSON.stringify(updatedLessons);
+      console.log(`Saving ${updatedLessons.length} lessons (${jsonValue.length} bytes)`);
+
+      try {
+        await AsyncStorage.setItem(STORAGE_KEY, jsonValue);
+        console.log("AsyncStorage.setItem completed successfully");
+        setStorageStatus(`Updated successfully! ${updatedLessons.length} lessons in storage.`);
+      } catch (err) {
+        console.error("AsyncStorage.setItem failed:", err);
+        setStorageStatus(`Storage error: ${err.message}`);
+        throw err;
+      }
+
+      // Update storage keys
+      const keys = await AsyncStorage.getAllKeys();
+      setStorageKeys(keys);
+
+      // Show success and reload
+      Alert.alert("Success", "Lesson updated successfully", [
+        {
+          text: "OK", onPress: async () => {
+            await loadFromStorage();
+            const refreshedLessons = getApprovedLessons().filter(
+              lesson => !lesson.isUserSubmitted
+            );
+            setAdminLessons(refreshedLessons);
+          }
+        }
+      ]);
+
+      return true;
+    } catch (error) {
+      console.error("Error in manualUpdateLesson:", error);
+      Alert.alert("Error", "Failed to update lesson: " + error.message);
+      setStorageStatus(`Update failed: ${error.message}`);
+      return false;
+    }
+  };
+
   const handleAddLesson = (lesson: string, anecdote: string) => {
     // Use our manual direct save instead
     manualSaveLesson(lesson, anecdote);
@@ -281,7 +356,7 @@ export default function AddLessonScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <ThemedText type="title" style={styles.titleText}>Admin: Add New Lesson</ThemedText>
+        <ThemedText type="title" style={styles.titleText}>Admin: Manage Lessons</ThemedText>
       </View>
 
       {/* Main content without any padding or scrolling */}
@@ -302,29 +377,208 @@ export default function AddLessonScreen() {
             // Show modal to manage lessons
             Alert.alert(
               "Manage Lessons",
-              `Found ${lessons.length} lessons. Select one to delete:`,
+              `Found ${lessons.length} lessons. What would you like to do?`,
               [
-                { text: "Cancel", style: "cancel" },
+                { text: "Close", style: "cancel" },
                 {
-                  text: "Show All",
+                  text: "View & Manage Lessons",
                   onPress: () => {
-                    // For each lesson, create an alert with delete option
+                    // For each lesson, create an alert with multiple management options
                     if (lessons.length === 0) {
-                      Alert.alert("No Lessons", "There are no lessons to delete.");
+                      Alert.alert("No Lessons", "There are no lessons to manage.");
                       return;
                     }
 
                     const showNextLesson = (index = 0) => {
-                      if (index >= lessons.length) return;
+                      if (index >= lessons.length) {
+                        // When done with all lessons, show a completion message with option to exit
+                        Alert.alert(
+                          "Management Complete",
+                          "You've reviewed all lessons.",
+                          [{ text: "Close", style: "default" }]
+                        );
+                        return;
+                      }
 
                       const lesson = lessons[index];
+
+                      // Show the lesson with management options
                       Alert.alert(
                         `${index + 1}/${lessons.length}: ${lesson.lesson}`,
-                        `Added by: ${lesson.userName}\n\nDelete this lesson?`,
+                        `Added by: ${lesson.userName}`,
                         [
                           { text: "Skip", onPress: () => showNextLesson(index + 1) },
+                          { text: "Exit", style: "cancel" },
                           {
-                            text: "Delete", style: "destructive", onPress: async () => {
+                            text: "Edit",
+                            onPress: () => {
+                              // First, show current title for editing
+                              Alert.prompt(
+                                "Edit Lesson Title",
+                                "Update the lesson title:",
+                                [
+                                  { text: "Cancel", style: "cancel" },
+                                  {
+                                    text: "Next",
+                                    onPress: async (updatedTitle) => {
+                                      if (!updatedTitle || updatedTitle.trim().length === 0) {
+                                        Alert.alert("Error", "Title cannot be empty");
+                                        return;
+                                      }
+
+                                      // Then prompt for anecdote edit
+                                      Alert.prompt(
+                                        "Edit Anecdote",
+                                        "Update the anecdote:",
+                                        [
+                                          { text: "Cancel", style: "cancel" },
+                                          {
+                                            text: "Save Changes",
+                                            onPress: async (updatedAnecdote) => {
+                                              if (!updatedAnecdote || updatedAnecdote.trim().length < 10) {
+                                                Alert.alert("Error", "Anecdote must be at least 10 characters");
+                                                return;
+                                              }
+
+                                              // Update the lesson
+                                              const success = await manualUpdateLesson(
+                                                lesson.id,
+                                                updatedTitle,
+                                                updatedAnecdote
+                                              );
+
+                                              if (success) {
+                                                // Continue with next lesson
+                                                showNextLesson(index + 1);
+                                              }
+                                            }
+                                          }
+                                        ],
+                                        "plain-text",
+                                        lesson.anecdote,
+                                        "default"
+                                      );
+                                    }
+                                  }
+                                ],
+                                "plain-text",
+                                lesson.lesson,
+                                "default"
+                              );
+                            }
+                          },
+                          {
+                            text: "View",
+                            onPress: () => {
+                              // Show the full content of the lesson
+                              Alert.alert(
+                                lesson.lesson,
+                                lesson.anecdote,
+                                [
+                                  {
+                                    text: "Back to Management",
+                                    onPress: () => {
+                                      // Go back to the management options for this lesson
+                                      Alert.alert(
+                                        `${index + 1}/${lessons.length}: ${lesson.lesson}`,
+                                        `Added by: ${lesson.userName}`,
+                                        [
+                                          { text: "Skip", onPress: () => showNextLesson(index + 1) },
+                                          {
+                                            text: "Edit", style: "default", onPress: () => {
+                                              // Copy the edit functionality from above
+                                              Alert.prompt(
+                                                "Edit Lesson Title",
+                                                "Update the lesson title:",
+                                                [
+                                                  { text: "Cancel", style: "cancel" },
+                                                  {
+                                                    text: "Next",
+                                                    onPress: async (updatedTitle) => {
+                                                      if (!updatedTitle || updatedTitle.trim().length === 0) {
+                                                        Alert.alert("Error", "Title cannot be empty");
+                                                        return;
+                                                      }
+
+                                                      // Then prompt for anecdote edit
+                                                      Alert.prompt(
+                                                        "Edit Anecdote",
+                                                        "Update the anecdote:",
+                                                        [
+                                                          { text: "Cancel", style: "cancel" },
+                                                          {
+                                                            text: "Save Changes",
+                                                            onPress: async (updatedAnecdote) => {
+                                                              if (!updatedAnecdote || updatedAnecdote.trim().length < 10) {
+                                                                Alert.alert("Error", "Anecdote must be at least 10 characters");
+                                                                return;
+                                                              }
+
+                                                              // Update the lesson
+                                                              const success = await manualUpdateLesson(
+                                                                lesson.id,
+                                                                updatedTitle,
+                                                                updatedAnecdote
+                                                              );
+
+                                                              if (success) {
+                                                                // Continue with next lesson
+                                                                showNextLesson(index + 1);
+                                                              }
+                                                            }
+                                                          }
+                                                        ],
+                                                        "plain-text",
+                                                        lesson.anecdote,
+                                                        "default"
+                                                      );
+                                                    }
+                                                  }
+                                                ],
+                                                "plain-text",
+                                                lesson.lesson,
+                                                "default"
+                                              );
+                                            }
+                                          },
+                                          {
+                                            text: "Delete", style: "destructive", onPress: async () => {
+                                              try {
+                                                // Get current storage
+                                                const data = await AsyncStorage.getItem(STORAGE_KEY);
+                                                if (!data) return;
+
+                                                // Parse and filter out the lesson to delete
+                                                const allLessons = JSON.parse(data);
+                                                const updatedLessons = allLessons.filter(l => l.id !== lesson.id);
+
+                                                // Save back to storage
+                                                await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedLessons));
+
+                                                // Reload data
+                                                await loadFromStorage();
+
+                                                Alert.alert("Success", "Lesson deleted successfully");
+
+                                                // Continue with next lesson
+                                                showNextLesson(index + 1);
+                                              } catch (error) {
+                                                Alert.alert("Error", "Failed to delete lesson: " + error.message);
+                                              }
+                                            }
+                                          }
+                                        ]
+                                      );
+                                    }
+                                  }
+                                ]
+                              );
+                            }
+                          },
+                          {
+                            text: "Delete",
+                            style: "destructive",
+                            onPress: async () => {
                               // Delete the lesson directly from storage
                               try {
                                 // Get current storage
@@ -356,20 +610,85 @@ export default function AddLessonScreen() {
 
                     showNextLesson();
                   }
+                },
+                {
+                  text: "Add New Lesson",
+                  onPress: () => {
+                    // Prompt for new lesson title
+                    Alert.prompt(
+                      "Add New Lesson",
+                      "Enter the lesson title:",
+                      [
+                        { text: "Cancel", style: "cancel" },
+                        {
+                          text: "Next",
+                          onPress: (lesson) => {
+                            if (!lesson || lesson.trim().length === 0) {
+                              Alert.alert("Error", "Title cannot be empty");
+                              return;
+                            }
+
+                            // Prompt for anecdote
+                            Alert.prompt(
+                              "Add Anecdote",
+                              "Enter the anecdote:",
+                              [
+                                { text: "Cancel", style: "cancel" },
+                                {
+                                  text: "Save Lesson",
+                                  onPress: (anecdote) => {
+                                    if (!anecdote || anecdote.trim().length < 10) {
+                                      Alert.alert("Error", "Anecdote must be at least 10 characters");
+                                      return;
+                                    }
+
+                                    // Save the new lesson
+                                    manualSaveLesson(lesson, anecdote);
+                                  }
+                                }
+                              ],
+                              "plain-text",
+                              "",
+                              "default"
+                            );
+                          }
+                        }
+                      ],
+                      "plain-text",
+                      "",
+                      "default"
+                    );
+                  }
+                },
+                {
+                  text: "Check Storage Status",
+                  onPress: manualCheckStorage
+                },
+                {
+                  text: "Reset All Data",
+                  style: "destructive",
+                  onPress: () => {
+                    Alert.alert(
+                      "Confirm Reset",
+                      "Are you sure you want to clear all data? This cannot be undone.",
+                      [
+                        { text: "Cancel", style: "cancel" },
+                        { text: "Reset Everything", style: "destructive", onPress: manualClearStorage }
+                      ]
+                    );
+                  }
                 }
               ]
             );
           }}
         >
           <Text style={{ color: 'white', fontSize: 14, fontWeight: 'normal' }}>
-            Manage Existing Lessons
+            Manage Lessons
           </Text>
         </TouchableOpacity>
 
-        {/* Original Add Form */}
-        <View style={{ width: '100%', margin: 0, padding: 0 }}>
-          <AddLessonForm onSubmit={handleAddLesson} adminMode={true} />
-        </View>
+        {/* Empty space to fill the screen */}
+        <View style={{ flex: 1 }} />
       </View>
     </SafeAreaView>
   );
@@ -567,5 +886,48 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'normal',
     fontSize: 14,
+  },
+  contentContainer: {
+    flex: 1,
+    paddingHorizontal: 12,
+    paddingTop: 12,
+  },
+  lessonsListContainer: {
+    flex: 1,
+    marginTop: 8,
+  },
+  lessonItemPreview: {
+    padding: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 4,
+    marginBottom: 8,
+    backgroundColor: 'white',
+  },
+  lessonItemHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  lessonItemNumber: {
+    fontWeight: 'bold',
+    marginRight: 8,
+    color: '#333',
+  },
+  lessonItemTitle: {
+    flex: 1,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  lessonItemAnecdote: {
+    color: '#666',
+    fontSize: 12,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginTop: 12,
+    marginBottom: 4,
+    paddingLeft: 4,
   },
 }); 

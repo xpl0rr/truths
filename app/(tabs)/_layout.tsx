@@ -28,7 +28,7 @@ export default function TabLayout() {
         <Tabs.Screen
           name="index"
           options={{
-            title: 'Gramma Said',
+            title: 'Sun Tzu Gramma',
             tabBarIcon: ({ color }) => <IconSymbol size={24} name="lightbulb.fill" color={color} />,
           }}
         />

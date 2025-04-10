@@ -120,23 +120,35 @@ export function LessonProvider({
     );
   };
 
-  // Simple but effective sorting score calculation
+  // Advanced sorting score calculation using Wilson score interval
   const getSortScore = (lesson: Lesson) => {
+    const upvotes = lesson.upvotes;
     const totalVotes = lesson.upvotes + lesson.downvotes;
+
+    // If no votes, return 0
     if (totalVotes === 0) return 0;
 
-    // Simple percentage calculation
-    const percentage = lesson.upvotes / totalVotes;
+    // For lessons with very few votes, apply a penalty
+    // This ensures items need a minimum number of votes to rank highly
+    if (totalVotes < 5) {
+      const rawPercentage = upvotes / totalVotes;
+      // Apply a significant penalty for lessons with only 1-4 votes
+      return rawPercentage * (totalVotes / 10); // Will be at most 40% of the raw percentage
+    }
 
-    // Add a small bonus based on total votes to ensure that
-    // with equal percentages, more votes ranks higher
-    // But this won't override a higher percentage
-    const voteCountBonus = Math.min(0.01, totalVotes / 1000);
+    // For lessons with more votes, use Wilson score interval lower bound
+    // This is a statistical approach that balances vote percentage with vote count
+    const z = 1.96; // 95% confidence interval
+    const phat = upvotes / totalVotes;
 
-    return percentage + voteCountBonus;
+    // Wilson score calculation
+    const numerator = phat + (z * z) / (2 * totalVotes) - z * Math.sqrt((phat * (1 - phat) + (z * z) / (4 * totalVotes)) / totalVotes);
+    const denominator = 1 + (z * z) / totalVotes;
+
+    return numerator / denominator;
   };
 
-  // Sort lessons by vote ratio - higher percentages should be first
+  // Sort lessons by score - higher scores should be first
   const getSortedLessons = (lessonList: Lesson[]) => {
     return [...lessonList].sort((a, b) => {
       // Get simple percentage for each lesson

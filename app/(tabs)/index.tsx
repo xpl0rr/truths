@@ -50,7 +50,7 @@ export default function LessonsScreen() {
             onPress={handleCloseLesson}
             activeOpacity={0.7}
           >
-            <AntDesign name="arrowleft" size={24} color="#000" />
+            <AntDesign name="arrowleft" size={22} color="#000" />
             <Text style={styles.backText}>Back</Text>
           </TouchableOpacity>
         </View>
@@ -88,7 +88,7 @@ export default function LessonsScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <ThemedText type="title" style={styles.titleText}>Things Gramma Told Me</ThemedText>
+          <ThemedText type="title" style={styles.titleText}>If Gramma was Sun Tzu</ThemedText>
         </View>
 
         {approvedLessons.length > 0 ? (
@@ -131,6 +131,7 @@ const styles = StyleSheet.create({
   },
   titleText: {
     fontWeight: 'normal',
+    fontSize: 18,
   },
   sortInfo: {
     padding: 4,
@@ -160,7 +161,8 @@ const styles = StyleSheet.create({
   fullScreenHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     backgroundColor: '#A1CEDC',
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
@@ -170,39 +172,39 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   backText: {
-    marginLeft: 8,
-    fontSize: 16,
+    marginLeft: 6,
+    fontSize: 14,
   },
   scrollView: {
     flex: 1,
   },
   fullScreenContent: {
-    padding: 16,
+    padding: 12,
   },
   fullScreenTitle: {
-    fontSize: 24,
-    marginBottom: 8,
+    fontSize: 20,
+    marginBottom: 6,
   },
   fullScreenSubmitter: {
-    marginBottom: 16,
-    fontSize: 14,
+    marginBottom: 10,
+    fontSize: 12,
     opacity: 0.7,
   },
   fullScreenAnecdoteContainer: {
-    padding: 16,
+    padding: 12,
     backgroundColor: '#f9f9f9',
     borderRadius: 8,
   },
   fullScreenAnecdote: {
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: 14,
+    lineHeight: 20,
   },
   debugText: {
-    marginTop: 20,
-    fontSize: 12,
+    marginTop: 12,
+    fontSize: 10,
     color: '#666',
     backgroundColor: 'rgba(0,0,0,0.05)',
-    padding: 10,
+    padding: 8,
     borderRadius: 4,
   }
 });
