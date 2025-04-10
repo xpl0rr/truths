@@ -1,19 +1,32 @@
-import React, { useEffect, useRef } from 'react';
-import { StyleSheet, View, ScrollView, TouchableOpacity, Text, SafeAreaView, Dimensions } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { StyleSheet, View, ScrollView, TouchableOpacity, Text, SafeAreaView, Dimensions, Modal } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
 import { ThemedText } from './ThemedText';
 import { ThemedView } from './ThemedView';
 import { Lesson } from '@/app/models/Lesson';
+import { CommentsList } from './CommentsList';
+import { useLessons } from '@/app/store/LessonStore';
 
 interface FullScreenLessonProps {
     lesson: Lesson;
     onClose: () => void;
+    userId: string;
+    userName: string;
 }
 
-export function FullScreenLesson({ lesson, onClose }: FullScreenLessonProps) {
+export function FullScreenLesson({ lesson, onClose, userId, userName }: FullScreenLessonProps) {
     const scrollViewRef = useRef(null);
+    const { getComments } = useLessons();
+    const [commentsVisible, setCommentsVisible] = useState(false);
+    const [commentCount, setCommentCount] = useState(0);
+
+    // Update comment count when component mounts or comments change
+    useEffect(() => {
+        const comments = getComments(lesson.id);
+        setCommentCount(comments.length);
+    }, [lesson.id, getComments, commentsVisible]);
 
     // Print debug info when mounting
     useEffect(() => {
@@ -26,6 +39,16 @@ export function FullScreenLesson({ lesson, onClose }: FullScreenLessonProps) {
     const handleClose = () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         onClose();
+    };
+
+    const toggleComments = () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        setCommentsVisible(!commentsVisible);
+    };
+
+    const handleCloseComments = () => {
+        console.log("Closing comments from FullScreenLesson");
+        setCommentsVisible(false);
     };
 
     // Calculate raw popularity percentage
@@ -52,15 +75,28 @@ export function FullScreenLesson({ lesson, onClose }: FullScreenLessonProps) {
                     onPress={handleClose}
                     activeOpacity={0.7}
                 >
-                    <AntDesign name="arrowleft" size={24} color="#000" />
+                    <AntDesign name="arrowleft" size={20} color="#000" />
                     <Text style={styles.backText}>Back</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={styles.commentsButton}
+                    onPress={toggleComments}
+                    activeOpacity={0.7}
+                >
+                    <AntDesign name="message1" size={18} color="#000" />
+                    {commentCount > 0 && (
+                        <View style={styles.commentCountBadge}>
+                            <Text style={styles.commentCount}>{commentCount}</Text>
+                        </View>
+                    )}
                 </TouchableOpacity>
             </View>
 
             <ScrollView
                 ref={scrollViewRef}
                 style={styles.scrollView}
-                contentContainerStyle={[styles.scrollContent, { minHeight: windowHeight * 0.7 }]}
+                contentContainerStyle={styles.scrollContent}
                 showsVerticalScrollIndicator={true}
                 scrollEventThrottle={16}
             >
@@ -91,6 +127,22 @@ export function FullScreenLesson({ lesson, onClose }: FullScreenLessonProps) {
                     </ThemedView>
                 </View>
             </ScrollView>
+
+            {/* Comments Modal */}
+            <Modal
+                visible={commentsVisible}
+                animationType="slide"
+                transparent={false}
+                presentationStyle="fullScreen"
+                onRequestClose={handleCloseComments}
+            >
+                <CommentsList
+                    lessonId={lesson.id}
+                    userId={userId}
+                    userName={userName}
+                    onClose={handleCloseComments}
+                />
+            </Modal>
         </SafeAreaView>
     );
 }
@@ -103,7 +155,9 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 16,
+        justifyContent: 'space-between',
+        paddingVertical: 10,
+        paddingHorizontal: 12,
         borderBottomWidth: 1,
         borderBottomColor: '#eee',
         backgroundColor: '#A1CEDC',
@@ -113,45 +167,65 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     backText: {
-        marginLeft: 8,
-        fontSize: 16,
+        marginLeft: 6,
+        fontSize: 14,
+    },
+    commentsButton: {
+        padding: 6,
+        position: 'relative',
+    },
+    commentCountBadge: {
+        position: 'absolute',
+        top: -2,
+        right: -2,
+        backgroundColor: '#F44336',
+        borderRadius: 8,
+        minWidth: 16,
+        height: 16,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    commentCount: {
+        color: 'white',
+        fontSize: 10,
+        fontWeight: 'bold',
     },
     scrollView: {
         flex: 1,
     },
     scrollContent: {
         flexGrow: 1,
-        paddingBottom: 40,
+        paddingBottom: 20,
     },
     content: {
-        padding: 16,
+        padding: 12,
     },
     titleText: {
-        fontSize: 24,
-        marginBottom: 8,
+        fontSize: 20,
+        marginBottom: 6,
     },
     submittedBy: {
-        marginBottom: 16,
-        fontSize: 14,
+        marginBottom: 10,
+        fontSize: 12,
         opacity: 0.7,
     },
     anecdoteContainer: {
-        padding: 16,
+        padding: 12,
         backgroundColor: '#f9f9f9',
         borderRadius: 8,
     },
     anecdoteText: {
-        fontSize: 16,
-        lineHeight: 24,
+        fontSize: 14,
+        lineHeight: 20,
     },
     debugInfo: {
-        marginTop: 20,
-        padding: 10,
+        marginTop: 12,
+        padding: 8,
         backgroundColor: 'rgba(0,0,0,0.05)',
         borderRadius: 4,
     },
     debugText: {
-        fontSize: 12,
+        fontSize: 10,
         color: '#666',
     }
 }); 

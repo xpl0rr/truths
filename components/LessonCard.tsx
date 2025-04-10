@@ -79,16 +79,9 @@ export function LessonCard({ lesson, userId, onVote, onSelect }: LessonCardProps
               )}
               {totalVotes > 0 && (
                 <View style={styles.ratingContainer}>
-                  <View
-                    style={[
-                      styles.ratingBadge,
-                      { backgroundColor: getRatioColor() }
-                    ]}
-                  >
-                    <ThemedText style={styles.ratingText}>
-                      {popularityPercentage}%
-                    </ThemedText>
-                  </View>
+                  <ThemedText style={[styles.ratingText, { color: getRatioColor() }]}>
+                    {popularityPercentage}%
+                  </ThemedText>
                   <ThemedText style={styles.votesTotalText}>
                     ({lesson.upvotes}/{totalVotes})
                   </ThemedText>
@@ -202,16 +195,10 @@ const styles = StyleSheet.create({
   ratingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  ratingBadge: {
-    paddingHorizontal: 4,
-    paddingVertical: 1,
-    borderRadius: 4,
-    marginRight: 3,
+    gap: 3,
   },
   ratingText: {
-    color: 'white',
-    fontSize: 10,
+    fontSize: 13,
     fontWeight: 'bold',
   },
   votesTotalText: {

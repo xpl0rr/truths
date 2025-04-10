@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Lesson, sampleLessons } from '../models/Lesson';
+import { Lesson, sampleLessons, Comment } from '../models/Lesson';
 
 // Storage key for lessons
 const STORAGE_KEY = 'gramma_lessons_v2';
@@ -20,6 +20,9 @@ interface LessonContextType {
   saveToStorage: () => Promise<boolean>;
   loadFromStorage: () => Promise<void>;
   clearStorage: () => Promise<boolean>;
+  addComment: (lessonId: string, commentText: string, userId: string, userName: string) => void;
+  getComments: (lessonId: string) => Comment[];
+  deleteComment: (lessonId: string, commentId: string) => void;
 }
 
 const LessonContext = createContext<LessonContextType | undefined>(undefined);
@@ -298,6 +301,58 @@ export function LessonProvider({
     }
   };
 
+  // Add a comment to a lesson
+  const addComment = (lessonId: string, commentText: string, userId: string, userName: string) => {
+    setLessons(prevLessons =>
+      prevLessons.map(lesson => {
+        if (lesson.id !== lessonId) return lesson;
+
+        const newComment: Comment = {
+          id: Date.now().toString(),
+          text: commentText,
+          userId,
+          userName,
+          createdAt: new Date()
+        };
+
+        // Initialize comments array if it doesn't exist
+        const existingComments = lesson.comments || [];
+
+        return {
+          ...lesson,
+          comments: [newComment, ...existingComments]
+        };
+      })
+    );
+
+    // Save to storage after adding comment
+    saveToStorage();
+  };
+
+  // Get all comments for a lesson
+  const getComments = (lessonId: string): Comment[] => {
+    const lesson = lessons.find(l => l.id === lessonId);
+    return lesson?.comments || [];
+  };
+
+  // Delete a comment from a lesson
+  const deleteComment = (lessonId: string, commentId: string) => {
+    setLessons(prevLessons =>
+      prevLessons.map(lesson => {
+        if (lesson.id !== lessonId) return lesson;
+        if (!lesson.comments) return lesson;
+
+        return {
+          ...lesson,
+          comments: lesson.comments.filter(comment => comment.id !== commentId)
+        };
+      })
+    );
+
+    // Save to storage after deleting comment
+    saveToStorage();
+  };
+
   const value = {
     lessons,
     addLesson,
@@ -312,7 +367,10 @@ export function LessonProvider({
     getSortedLessons,
     saveToStorage,
     loadFromStorage,
-    clearStorage
+    clearStorage,
+    addComment,
+    getComments,
+    deleteComment
   };
 
   return (

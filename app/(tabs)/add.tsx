@@ -10,6 +10,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { AddLessonForm } from '@/components/AddLessonForm';
 import { LessonCard } from '@/components/LessonCard';
 import { useLessons } from '../store/LessonStore';
+import { FullScreenLesson } from '@/components/FullScreenLesson';
 
 // Debug storage keys
 const STORAGE_KEY = 'gramma_lessons_v2';
@@ -320,36 +321,12 @@ export default function AddLessonScreen() {
   // Show full screen lesson if one is selected
   if (selectedLesson) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.fullScreenHeader}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={handleCloseLesson}
-            activeOpacity={0.7}
-          >
-            <AntDesign name="arrowleft" size={24} color="#000" />
-            <Text style={styles.backText}>Back</Text>
-          </TouchableOpacity>
-        </View>
-
-        <ScrollView style={styles.scrollView}>
-          <View style={styles.fullScreenContent}>
-            <ThemedText type="title" style={styles.fullScreenTitle}>
-              {selectedLesson.lesson}
-            </ThemedText>
-
-            <ThemedView style={styles.fullScreenAnecdoteContainer}>
-              <ThemedText style={styles.fullScreenAnecdote}>
-                {selectedLesson.anecdote}
-              </ThemedText>
-
-              <Text style={styles.debugText}>
-                Anecdote length: {selectedLesson.anecdote.length} characters
-              </Text>
-            </ThemedView>
-          </View>
-        </ScrollView>
-      </SafeAreaView>
+      <FullScreenLesson
+        lesson={selectedLesson}
+        onClose={handleCloseLesson}
+        userId={userId}
+        userName={userName}
+      />
     );
   }
 

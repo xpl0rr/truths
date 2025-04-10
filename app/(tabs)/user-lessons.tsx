@@ -8,6 +8,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { LessonCard } from '@/components/LessonCard';
 import { useLessons } from '../store/LessonStore';
 import { BlurView } from 'expo-blur';
+import { FullScreenLesson } from '@/components/FullScreenLesson';
 
 export default function UserLessonsScreen() {
     // In a real app, we would get the userId from auth
@@ -112,44 +113,12 @@ export default function UserLessonsScreen() {
     // Show full screen lesson if one is selected
     if (selectedLesson) {
         return (
-            <SafeAreaView style={styles.container}>
-                <View style={styles.fullScreenHeader}>
-                    <TouchableOpacity
-                        style={styles.backButton}
-                        onPress={handleCloseLesson}
-                        activeOpacity={0.7}
-                    >
-                        <AntDesign name="arrowleft" size={24} color="#000" />
-                        <Text style={styles.backText}>Back</Text>
-                    </TouchableOpacity>
-                </View>
-
-                <ScrollView style={styles.scrollView}>
-                    <View style={styles.fullScreenContent}>
-                        <ThemedText type="title" style={styles.fullScreenTitle}>
-                            {selectedLesson.lesson}
-                        </ThemedText>
-
-                        {selectedLesson.isUserSubmitted && (
-                            <ThemedText style={styles.fullScreenSubmitter}>
-                                by {selectedLesson.userName}
-                            </ThemedText>
-                        )}
-
-                        <ThemedView style={styles.fullScreenAnecdoteContainer}>
-                            <ThemedText style={styles.fullScreenAnecdote}>
-                                {selectedLesson.anecdote}
-                            </ThemedText>
-
-                            {__DEV__ && (
-                                <Text style={styles.debugText}>
-                                    Anecdote length: {selectedLesson.anecdote.length} characters
-                                </Text>
-                            )}
-                        </ThemedView>
-                    </View>
-                </ScrollView>
-            </SafeAreaView>
+            <FullScreenLesson
+                lesson={selectedLesson}
+                onClose={handleCloseLesson}
+                userId={userId}
+                userName={userName}
+            />
         );
     }
 

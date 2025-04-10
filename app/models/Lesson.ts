@@ -1,3 +1,11 @@
+export interface Comment {
+  id: string;
+  text: string;
+  userId: string;
+  userName: string;
+  createdAt: Date;
+}
+
 export interface Lesson {
   id: string;
   lesson: string;
@@ -11,6 +19,7 @@ export interface Lesson {
   isUserSubmitted: boolean;
   isApproved: boolean;
   approvalThreshold: number;
+  comments?: Comment[];
 }
 
 // Sample data for testing
@@ -27,7 +36,23 @@ export const sampleLessons: Lesson[] = [
     userName: 'Admin',
     isUserSubmitted: false,
     isApproved: true,
-    approvalThreshold: 10
+    approvalThreshold: 10,
+    comments: [
+      {
+        id: 'c1',
+        text: "This really resonates with me. I've learned this lesson the hard way too.",
+        userId: 'user123',
+        userName: 'Jane',
+        createdAt: new Date('2023-01-16')
+      },
+      {
+        id: 'c2',
+        text: 'My grandmother always used to say this!',
+        userId: 'user456',
+        userName: 'Mark',
+        createdAt: new Date('2023-01-18')
+      }
+    ]
   },
   {
     id: '2',
