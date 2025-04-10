@@ -303,8 +303,8 @@ export function LessonProvider({
 
   // Add a comment to a lesson
   const addComment = (lessonId: string, commentText: string, userId: string, userName: string) => {
-    setLessons(prevLessons =>
-      prevLessons.map(lesson => {
+    setLessons(prevLessons => {
+      const updatedLessons = prevLessons.map(lesson => {
         if (lesson.id !== lessonId) return lesson;
 
         const newComment: Comment = {
@@ -318,15 +318,22 @@ export function LessonProvider({
         // Initialize comments array if it doesn't exist
         const existingComments = lesson.comments || [];
 
-        return {
+        const updatedLesson = {
           ...lesson,
           comments: [newComment, ...existingComments]
         };
-      })
-    );
 
-    // Save to storage after adding comment
-    saveToStorage();
+        return updatedLesson;
+      });
+
+      // Save to storage immediately
+      const jsonValue = JSON.stringify(updatedLessons);
+      AsyncStorage.setItem(STORAGE_KEY, jsonValue)
+        .then(() => console.log("Comments saved to storage"))
+        .catch(err => console.error("Error saving comments:", err));
+
+      return updatedLessons;
+    });
   };
 
   // Get all comments for a lesson

@@ -326,6 +326,7 @@ export default function AddLessonScreen() {
         onClose={handleCloseLesson}
         userId={userId}
         userName={userName}
+        isAdmin={true}
       />
     );
   }

@@ -9,10 +9,11 @@ import { Comment } from '@/app/models/Lesson';
 interface CommentItemProps {
     comment: Comment;
     currentUserId: string;
+    isAdmin?: boolean;
     onDelete?: (commentId: string) => void;
 }
 
-export function CommentItem({ comment, currentUserId, onDelete }: CommentItemProps) {
+export function CommentItem({ comment, currentUserId, isAdmin = false, onDelete }: CommentItemProps) {
     const isOwnComment = comment.userId === currentUserId;
 
     const formatDate = (date: Date) => {
@@ -31,6 +32,8 @@ export function CommentItem({ comment, currentUserId, onDelete }: CommentItemPro
         }
     };
 
+    const canDelete = isAdmin || isOwnComment;
+
     return (
         <View style={styles.container}>
             <View style={styles.header}>
@@ -39,7 +42,7 @@ export function CommentItem({ comment, currentUserId, onDelete }: CommentItemPro
                     <ThemedText style={styles.date}>{formatDate(comment.createdAt)}</ThemedText>
                 </View>
 
-                {isOwnComment && onDelete && (
+                {canDelete && onDelete && (
                     <TouchableOpacity
                         style={styles.deleteButton}
                         onPress={handleDelete}

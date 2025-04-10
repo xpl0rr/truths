@@ -118,6 +118,7 @@ export default function UserLessonsScreen() {
                 onClose={handleCloseLesson}
                 userId={userId}
                 userName={userName}
+                isAdmin={false}
             />
         );
     }

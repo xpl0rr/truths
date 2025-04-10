@@ -49,7 +49,8 @@ export default function LessonsScreen() {
         lesson={selectedLesson}
         onClose={handleCloseLesson}
         userId={userId}
-        userName={userName}
+        userName="Jane Doe"
+        isAdmin={false}
       />
     );
   }

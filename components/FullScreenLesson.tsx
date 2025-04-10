@@ -14,9 +14,10 @@ interface FullScreenLessonProps {
     onClose: () => void;
     userId: string;
     userName: string;
+    isAdmin?: boolean;
 }
 
-export function FullScreenLesson({ lesson, onClose, userId, userName }: FullScreenLessonProps) {
+export function FullScreenLesson({ lesson, onClose, userId, userName, isAdmin = false }: FullScreenLessonProps) {
     const scrollViewRef = useRef(null);
     const { getComments } = useLessons();
     const [commentsVisible, setCommentsVisible] = useState(false);
@@ -24,9 +25,28 @@ export function FullScreenLesson({ lesson, onClose, userId, userName }: FullScre
 
     // Update comment count when component mounts or comments change
     useEffect(() => {
-        const comments = getComments(lesson.id);
-        setCommentCount(comments.length);
-    }, [lesson.id, getComments, commentsVisible]);
+        // Add a timer to periodically check for new comments
+        const refreshComments = () => {
+            const comments = getComments(lesson.id);
+            setCommentCount(comments.length);
+        };
+
+        // Refresh immediately and then every 2 seconds
+        refreshComments();
+        const intervalId = setInterval(refreshComments, 2000);
+
+        // Clean up interval on unmount
+        return () => clearInterval(intervalId);
+    }, [lesson.id, getComments]);
+
+    // Additional check when comments modal visibility changes
+    useEffect(() => {
+        if (!commentsVisible) {
+            // Refresh comment count when modal closes
+            const comments = getComments(lesson.id);
+            setCommentCount(comments.length);
+        }
+    }, [commentsVisible, lesson.id, getComments]);
 
     // Print debug info when mounting
     useEffect(() => {
@@ -49,6 +69,10 @@ export function FullScreenLesson({ lesson, onClose, userId, userName }: FullScre
     const handleCloseComments = () => {
         console.log("Closing comments from FullScreenLesson");
         setCommentsVisible(false);
+
+        // Force update comment count after closing
+        const comments = getComments(lesson.id);
+        setCommentCount(comments.length);
     };
 
     // Calculate raw popularity percentage
@@ -133,13 +157,15 @@ export function FullScreenLesson({ lesson, onClose, userId, userName }: FullScre
                 visible={commentsVisible}
                 animationType="slide"
                 transparent={false}
-                presentationStyle="fullScreen"
+                presentationStyle="formSheet"
+                supportedOrientations={['portrait']}
                 onRequestClose={handleCloseComments}
             >
                 <CommentsList
                     lessonId={lesson.id}
                     userId={userId}
                     userName={userName}
+                    isAdmin={isAdmin}
                     onClose={handleCloseComments}
                 />
             </Modal>
