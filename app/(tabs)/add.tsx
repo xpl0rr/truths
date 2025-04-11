@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, SafeAreaView, View, ScrollView, FlatList, TouchableOpacity, Text, Alert, Button } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { StyleSheet, SafeAreaView, View, ScrollView, FlatList, TouchableOpacity, Alert, Button, Modal, Platform } from 'react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { AntDesign } from '@expo/vector-icons';
@@ -281,8 +281,8 @@ export default function AddLessonScreen() {
     }
   };
 
-  const handleAddLesson = (lesson: string, anecdote: string) => {
-    // Use our manual direct save instead
+  // Handle the submission of a new lesson from the form
+  const handleSubmitNewLesson = (lesson, anecdote) => {
     manualSaveLesson(lesson, anecdote);
   };
 
@@ -590,55 +590,6 @@ export default function AddLessonScreen() {
                   }
                 },
                 {
-                  text: "Add New Lesson",
-                  onPress: () => {
-                    // Prompt for new lesson title
-                    Alert.prompt(
-                      "Add New Lesson",
-                      "Enter the lesson title:",
-                      [
-                        { text: "Cancel", style: "cancel" },
-                        {
-                          text: "Next",
-                          onPress: (lesson) => {
-                            if (!lesson || lesson.trim().length === 0) {
-                              Alert.alert("Error", "Title cannot be empty");
-                              return;
-                            }
-
-                            // Prompt for anecdote
-                            Alert.prompt(
-                              "Add Anecdote",
-                              "Enter the anecdote:",
-                              [
-                                { text: "Cancel", style: "cancel" },
-                                {
-                                  text: "Save Lesson",
-                                  onPress: (anecdote) => {
-                                    if (!anecdote || anecdote.trim().length < 10) {
-                                      Alert.alert("Error", "Anecdote must be at least 10 characters");
-                                      return;
-                                    }
-
-                                    // Save the new lesson
-                                    manualSaveLesson(lesson, anecdote);
-                                  }
-                                }
-                              ],
-                              "plain-text",
-                              "",
-                              "default"
-                            );
-                          }
-                        }
-                      ],
-                      "plain-text",
-                      "",
-                      "default"
-                    );
-                  }
-                },
-                {
                   text: "Check Storage Status",
                   onPress: manualCheckStorage
                 },
@@ -660,13 +611,16 @@ export default function AddLessonScreen() {
             );
           }}
         >
-          <Text style={{ color: 'white', fontSize: 14, fontWeight: 'normal' }}>
+          <ThemedText style={{ color: 'white', fontSize: 14, fontWeight: 'normal' }}>
             Manage Lessons
-          </Text>
+          </ThemedText>
         </TouchableOpacity>
 
-        {/* Empty space to fill the screen */}
-        <View style={{ flex: 1 }} />
+        {/* Add the lesson form directly in the UI */}
+        <AddLessonForm
+          onSubmit={handleSubmitNewLesson}
+          adminMode={true}
+        />
       </View>
     </SafeAreaView>
   );

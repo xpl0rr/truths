@@ -8,6 +8,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { LessonCard } from '@/components/LessonCard';
 import { useLessons } from '../store/LessonStore';
 import { FullScreenLesson } from '@/components/FullScreenLesson';
+import { TestComponent } from '@/components/TestComponent';
 
 export default function LessonsScreen() {
   // In a real app, we would get the userId from auth
@@ -59,8 +60,12 @@ export default function LessonsScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <ThemedText type="title" style={styles.titleText}>If Gramma was Sun Tzu</ThemedText>
+          <ThemedText type="title" style={[styles.titleText, { color: 'red', fontSize: 22 }]}>
+            TEST - If Gramma was Sun Tzu - TEST
+          </ThemedText>
         </View>
+
+        <TestComponent />
 
         {approvedLessons.length > 0 ? (
           <>

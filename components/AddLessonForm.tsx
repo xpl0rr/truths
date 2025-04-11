@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, TextInput, TouchableOpacity, View, Alert, ScrollView, KeyboardAvoidingView, Platform, Keyboard, Modal } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { StyleSheet, TextInput, TouchableOpacity, View, Alert, ScrollView, Text } from 'react-native';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 
@@ -15,6 +15,7 @@ export function AddLessonForm({ onSubmit, adminMode = false }: AddLessonFormProp
   const [lesson, setLesson] = useState('');
   const [anecdote, setAnecdote] = useState('');
   const [isFormVisible, setIsFormVisible] = useState(false);
+  const anecdoteInputRef = useRef<TextInput>(null);
 
   const validateInputs = () => {
     if (!lesson.trim()) {
@@ -73,8 +74,8 @@ export function AddLessonForm({ onSubmit, adminMode = false }: AddLessonFormProp
 
   const buttonColor = adminMode ? '#4CAF50' : '#4A90E2';
 
-  return (
-    <View style={styles.container}>
+  if (!isFormVisible) {
+    return (
       <TouchableOpacity
         style={[styles.addButton, { backgroundColor: buttonColor }]}
         onPress={toggleForm}
@@ -83,91 +84,74 @@ export function AddLessonForm({ onSubmit, adminMode = false }: AddLessonFormProp
           {adminMode ? 'Add Official Lesson' : 'Add New Lesson'}
         </ThemedText>
       </TouchableOpacity>
+    );
+  }
 
-      <Modal
-        visible={isFormVisible}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={toggleForm}>
-        <View style={styles.modalContainer}>
+  return (
+    <View style={styles.container}>
+      <BlurView intensity={90} tint="light" style={styles.formContainer}>
+        <View style={styles.formHeader}>
+          <ThemedText type="subtitle" style={styles.formTitle}>
+            {adminMode ? 'Add to Gramma Said' : 'Share Your Wisdom'}
+          </ThemedText>
           <TouchableOpacity
-            style={styles.modalBackdrop}
-            activeOpacity={1}
-            onPress={() => {
-              Keyboard.dismiss();
-            }}>
-            <KeyboardAvoidingView
-              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-              style={styles.keyboardView}>
-              <View style={styles.formWrapper}>
-                <BlurView
-                  intensity={90}
-                  tint="light"
-                  style={styles.formContainer}>
-                  <ScrollView
-                    contentContainerStyle={styles.scrollContent}
-                    showsVerticalScrollIndicator={true}
-                    keyboardShouldPersistTaps="handled">
-                    <ThemedText type="subtitle" style={styles.formTitle}>
-                      {adminMode ? 'Add to Gramma Said' : 'Share Your Wisdom'}
-                    </ThemedText>
-
-                    <TextInput
-                      placeholder="Life lesson (e.g. 'Patience is a virtue')"
-                      placeholderTextColor={placeholderColor}
-                      value={lesson}
-                      onChangeText={setLesson}
-                      style={[styles.input, { backgroundColor: inputBgColor, color: textColor }]}
-                      maxLength={100}
-                    />
-
-                    <TextInput
-                      placeholder="Tell a short anecdote about this lesson..."
-                      placeholderTextColor={placeholderColor}
-                      value={anecdote}
-                      onChangeText={setAnecdote}
-                      style={[styles.input, styles.textArea, { backgroundColor: inputBgColor, color: textColor }]}
-                      multiline={true}
-                      numberOfLines={8}
-                      maxLength={1000}
-                      textAlignVertical="top"
-                    />
-
-                    <View style={styles.buttonRow}>
-                      <TouchableOpacity
-                        style={[styles.button, styles.cancelButton]}
-                        onPress={toggleForm}>
-                        <ThemedText style={styles.buttonText}>Cancel</ThemedText>
-                      </TouchableOpacity>
-
-                      <TouchableOpacity
-                        style={[styles.button, styles.submitButton, { backgroundColor: buttonColor }]}
-                        onPress={handleSubmit}>
-                        <ThemedText style={styles.submitButtonText}>Submit</ThemedText>
-                      </TouchableOpacity>
-                    </View>
-
-                    {/* Add padding at bottom to ensure scrolling clears the keyboard */}
-                    <View style={styles.bottomPadding} />
-                  </ScrollView>
-                </BlurView>
-              </View>
-            </KeyboardAvoidingView>
+            style={styles.closeButton}
+            onPress={toggleForm}
+          >
+            <ThemedText style={styles.closeButtonText}>✕</ThemedText>
           </TouchableOpacity>
         </View>
-      </Modal>
+
+        <TextInput
+          placeholder="Life lesson (e.g. 'Patience is a virtue')"
+          placeholderTextColor={placeholderColor}
+          value={lesson}
+          onChangeText={setLesson}
+          style={[styles.input, { backgroundColor: inputBgColor, color: textColor }]}
+          maxLength={100}
+          returnKeyType="next"
+          onSubmitEditing={() => anecdoteInputRef.current?.focus()}
+        />
+
+        <TextInput
+          ref={anecdoteInputRef}
+          placeholder="Tell a short anecdote about this lesson..."
+          placeholderTextColor={placeholderColor}
+          value={anecdote}
+          onChangeText={setAnecdote}
+          style={[styles.textArea, { backgroundColor: inputBgColor, color: textColor }]}
+          multiline={true}
+          maxLength={1000}
+          textAlignVertical="top"
+        />
+
+        <View style={styles.buttonRow}>
+          <TouchableOpacity
+            style={[styles.button, styles.cancelButton]}
+            onPress={toggleForm}>
+            <ThemedText style={styles.buttonText}>Cancel</ThemedText>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.button, styles.submitButton, { backgroundColor: buttonColor }]}
+            onPress={handleSubmit}>
+            <ThemedText style={styles.submitButtonText}>Submit</ThemedText>
+          </TouchableOpacity>
+        </View>
+      </BlurView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     margin: 0,
     padding: 0,
     width: '100%',
   },
   addButton: {
-    backgroundColor: '#4A90E2',
+    backgroundColor: '#FF0000',
     paddingVertical: 8,
     borderRadius: 0,
     alignItems: 'center',
@@ -175,63 +159,65 @@ const styles = StyleSheet.create({
   },
   addButtonText: {
     color: 'white',
-    fontWeight: 'normal',
-    fontSize: 14,
-  },
-  modalContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 1000,
-  },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 16,
-  },
-  formWrapper: {
-    width: '100%',
-    maxHeight: '80%',
-    backgroundColor: 'white',
-    borderRadius: 8,
-    overflow: 'hidden',
+    fontWeight: 'bold',
+    fontSize: 18,
   },
   formContainer: {
+    flex: 1,
     width: '100%',
-    height: '100%',
+    padding: 12,
   },
-  scrollContent: {
-    padding: 8,
-    gap: 8,
+  formHeader: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+    position: 'relative',
   },
   formTitle: {
     textAlign: 'center',
-    marginBottom: 4,
-    fontWeight: 'normal',
+    fontWeight: 'bold',
+  },
+  closeButton: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    width: 30,
+    height: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  closeButtonText: {
+    fontSize: 18,
+    opacity: 0.7,
   },
   input: {
     borderRadius: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    fontSize: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 16,
+    marginBottom: 10,
   },
   textArea: {
-    minHeight: 120,
+    borderRadius: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 16,
+    minHeight: 200,
+    maxHeight: 400,
     textAlignVertical: 'top',
-    paddingTop: 8,
+    marginBottom: 12,
   },
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 8,
+    gap: 10,
+    marginTop: 10,
+    marginBottom: 20,
   },
   button: {
     flex: 1,
-    padding: 8,
+    padding: 12,
     borderRadius: 4,
     alignItems: 'center',
   },
@@ -239,21 +225,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(150, 150, 150, 0.2)',
   },
   submitButton: {
-    backgroundColor: '#4A90E2',
+    backgroundColor: '#FF0000',
   },
   buttonText: {
-    fontWeight: 'normal',
+    fontWeight: 'bold',
   },
   submitButtonText: {
-    fontWeight: 'normal',
+    fontWeight: 'bold',
     color: 'white',
-  },
-  bottomPadding: {
-    height: 100, // Extra padding at bottom to ensure scroll clears keyboard
-  },
-  keyboardView: {
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 }); 
