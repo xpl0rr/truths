@@ -1,276 +1,103 @@
 import React, { useState } from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import { BlurView } from 'expo-blur';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
 
-import { ThemedText } from './ThemedText';
-import { ThemedView } from './ThemedView';
-import { Lesson } from '@/app/models/Lesson';
-import { SimpleCollapsible } from './SimpleCollapsible';
-
-interface LessonCardProps {
-  lesson: Lesson;
+type Props = {
+  lesson: {
+    id: string;
+    lesson: string;
+    approved: boolean;
+    votes: {
+      [userId: string]: 'up' | 'down';
+    };
+  };
   userId: string;
   onVote: (lessonId: string, userId: string, voteType: 'up' | 'down' | null) => void;
-  onSelect?: (lesson: Lesson) => void;
-}
+  onSelect: (lesson: any) => void;
+};
 
-export function LessonCard({ lesson, userId, onVote, onSelect }: LessonCardProps) {
+const LessonCard = ({ lesson, userId, onVote, onSelect }: Props) => {
   const [expanded, setExpanded] = useState(false);
 
-  const userVote = lesson.voters[userId] || null;
+  const userVote = lesson.votes?.[userId] ?? null;
   const isUpvoted = userVote === 'up';
   const isDownvoted = userVote === 'down';
 
-  const handleVote = (voteType: 'up' | 'down', event: any) => {
-    event.stopPropagation(); // Prevent expanding the card when voting
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    // If user already voted this way, remove their vote
-    const newVoteType = lesson.voters[userId] === voteType ? null : voteType;
-    onVote(lesson.id, userId, newVoteType);
-  };
-
-  const handlePress = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-
-    // If onSelect is provided, use it for full-screen view
-    if (onSelect) {
-      onSelect(lesson);
-    } else {
-      // Otherwise fallback to the old expand behavior
-      setExpanded(!expanded);
-    }
-  };
-
-  // Calculate raw popularity percentage
-  const totalVotes = lesson.upvotes + lesson.downvotes;
-  const popularityPercentage = totalVotes === 0
-    ? 0
-    : Math.round((lesson.upvotes / totalVotes) * 100);
-
-  // Determine color based on ratio
-  const getRatioColor = () => {
-    if (popularityPercentage >= 75) return '#4CAF50'; // Green for 75%+ approval
-    if (popularityPercentage >= 50) return '#FFC107'; // Yellow for 50-74% approval
-    return '#F44336'; // Red for <50% approval
-  };
+  const upvotes = Object.values(lesson.votes || {}).filter((v) => v === 'up').length;
+  const downvotes = Object.values(lesson.votes || {}).filter((v) => v === 'down').length;
+  const totalVotes = upvotes + downvotes;
+  const approvalRate = totalVotes > 0 ? Math.round((upvotes / totalVotes) * 100) : 100;
 
   return (
     <TouchableOpacity
-      activeOpacity={0.7}
-      onPress={handlePress}
-      style={styles.cardWrapper}
+      onPress={() => onSelect(lesson)}
+      style={styles.container}
+      activeOpacity={0.8}
     >
-      <BlurView
-        intensity={80}
-        tint="light"
-        style={styles.card}>
-        <View style={styles.lessonContainer}>
-          <View style={styles.lessonHeader}>
-            <ThemedText type="subtitle" style={styles.lessonText}>
-              {lesson.lesson}
-            </ThemedText>
-            <View style={styles.lessonMeta}>
-              {lesson.isUserSubmitted && (
-                <ThemedText style={styles.submittedBy}>
-                  by {lesson.userName}
-                </ThemedText>
-              )}
-              {totalVotes > 0 && (
-                <View style={styles.ratingContainer}>
-                  <ThemedText style={[styles.ratingText, { color: getRatioColor() }]}>
-                    {popularityPercentage}%
-                  </ThemedText>
-                  <ThemedText style={styles.votesTotalText}>
-                    ({lesson.upvotes}/{totalVotes})
-                  </ThemedText>
-                </View>
-              )}
-            </View>
-          </View>
+      <Text style={styles.lessonText}>{lesson.lesson}</Text>
 
-          <View style={styles.votingContainer}>
-            <TouchableOpacity
-              onPress={(e) => handleVote('up', e)}
-              style={[styles.voteButton, isUpvoted && styles.activeUpvote]}>
-              <AntDesign
-                name="caretup"
-                size={14}
-                color={isUpvoted ? '#fff' : '#000'}
-              />
-              <ThemedText style={[styles.voteCount, isUpvoted && styles.activeVoteText]}>
-                {lesson.upvotes}
-              </ThemedText>
-            </TouchableOpacity>
+      <View style={styles.metaRow}>
+        <Text style={styles.percent}>{approvalRate}% ({upvotes}/{totalVotes || 1})</Text>
 
-            <TouchableOpacity
-              onPress={(e) => handleVote('down', e)}
-              style={[styles.voteButton, isDownvoted && styles.activeDownvote]}>
-              <AntDesign
-                name="caretdown"
-                size={14}
-                color={isDownvoted ? '#fff' : '#000'}
-              />
-              <ThemedText style={[styles.voteCount, isDownvoted && styles.activeVoteText]}>
-                {lesson.downvotes}
-              </ThemedText>
-            </TouchableOpacity>
-          </View>
+        <View style={styles.voteRow}>
+          <TouchableOpacity
+            onPress={() =>
+              onVote(lesson.id, userId, isUpvoted ? null : 'up')
+            }
+          >
+            <AntDesign
+              name="arrowup"
+              size={16}
+              color={isUpvoted ? 'green' : '#ccc'}
+              style={styles.voteIcon}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() =>
+              onVote(lesson.id, userId, isDownvoted ? null : 'down')
+            }
+          >
+            <AntDesign
+              name="arrowdown"
+              size={16}
+              color={isDownvoted ? 'red' : '#ccc'}
+              style={styles.voteIcon}
+            />
+          </TouchableOpacity>
         </View>
-
-        {!lesson.isApproved && lesson.isUserSubmitted && (
-          <View style={styles.progressContainer}>
-            <View style={styles.progressBackground}>
-              <View
-                style={[
-                  styles.progressFill,
-                  {
-                    width: `${popularityPercentage}%`,
-                    backgroundColor: getRatioColor()
-                  }
-                ]}
-              />
-            </View>
-            <ThemedText style={styles.progressText}>
-              {lesson.upvotes} upvotes of {totalVotes} total votes ({popularityPercentage}%)
-            </ThemedText>
-          </View>
-        )}
-
-        {/* Only show collapsible when onSelect is not provided */}
-        {!onSelect && (
-          <SimpleCollapsible collapsed={!expanded}>
-            <ThemedView style={styles.anecdoteContainer}>
-              <ThemedText style={styles.anecdoteText}>
-                {lesson.anecdote}
-              </ThemedText>
-              {lesson.isApproved && lesson.isUserSubmitted && (
-                <View style={styles.approvedBadge}>
-                  <ThemedText style={styles.approvedText}>FEATURED</ThemedText>
-                </View>
-              )}
-            </ThemedView>
-          </SimpleCollapsible>
-        )}
-      </BlurView>
+      </View>
     </TouchableOpacity>
   );
-}
+};
+
+export default LessonCard;
 
 const styles = StyleSheet.create({
-  cardWrapper: {
-    marginBottom: 8,
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  card: {
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  lessonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 8,
-  },
-  lessonHeader: {
-    flex: 1,
-    marginRight: 4,
+  container: {
+    backgroundColor: '#f0f0f0',
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 10,
   },
   lessonText: {
-    fontWeight: 'normal',
+    fontSize: 14,
+    marginBottom: 6,
+    color: '#222',
   },
-  lessonMeta: {
+  metaRow: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 2,
-  },
-  submittedBy: {
-    fontSize: 10,
-    opacity: 0.6,
-  },
-  ratingContainer: {
-    flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
   },
-  ratingText: {
-    fontSize: 13,
-    fontWeight: 'bold',
-  },
-  votesTotalText: {
-    fontSize: 10,
-    opacity: 0.6,
-  },
-  votingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  voteButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: 12,
-    minWidth: 28,
-  },
-  activeUpvote: {
-    backgroundColor: '#4CAF50',
-  },
-  activeDownvote: {
-    backgroundColor: '#F44336',
-  },
-  activeVoteText: {
-    color: '#fff',
-  },
-  voteCount: {
+  percent: {
     fontSize: 12,
+    color: 'green',
   },
-  progressContainer: {
-    paddingHorizontal: 8,
-    paddingBottom: 4,
+  voteRow: {
+    flexDirection: 'row',
   },
-  progressBackground: {
-    height: 4,
-    backgroundColor: 'rgba(0, 0, 0, 0.1)',
-    borderRadius: 2,
-    overflow: 'hidden',
+  voteIcon: {
+    marginLeft: 8,
   },
-  progressFill: {
-    height: '100%',
-    borderRadius: 2,
-  },
-  progressText: {
-    fontSize: 10,
-    textAlign: 'right',
-    opacity: 0.7,
-    marginTop: 2,
-  },
-  anecdoteContainer: {
-    paddingHorizontal: 8,
-    paddingBottom: 8,
-  },
-  anecdoteText: {
-    fontStyle: 'italic',
-    lineHeight: 18,
-    fontSize: 12,
-  },
-  approvedBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#4CAF50',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    marginTop: 6,
-  },
-  approvedText: {
-    color: 'white',
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
-}); 
+});
