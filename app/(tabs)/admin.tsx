@@ -16,12 +16,14 @@ export default function AdminScreen() {
     approveLesson,
     updateLessonText,
     deleteLesson,
+    addLesson,
   } = useLessons();
 
-  const allLessons = getAllLessons();
+  const allLessons = getAllLessons().filter((l) => !l.approved);
   const [searchQuery, setSearchQuery] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editedText, setEditedText] = useState('');
+  const [newLesson, setNewLesson] = useState('');
 
   const startEditing = (lessonId: string, currentText: string) => {
     setEditingId(lessonId);
@@ -38,8 +40,15 @@ export default function AdminScreen() {
     cancelEditing();
   };
 
+  const handleAddLesson = () => {
+    if (newLesson.trim()) {
+      addLesson(newLesson.trim());
+      setNewLesson('');
+    }
+  };
+
   const filteredLessons = allLessons.filter((lesson) =>
-    lesson.lesson.toLowerCase().includes(searchQuery.toLowerCase())
+    lesson.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -54,6 +63,18 @@ export default function AdminScreen() {
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
+
+        <View style={styles.addRow}>
+          <TextInput
+            value={newLesson}
+            onChangeText={setNewLesson}
+            placeholder="Add new truth"
+            style={styles.input}
+          />
+          <TouchableOpacity onPress={handleAddLesson}>
+            <Text style={styles.action}>Add</Text>
+          </TouchableOpacity>
+        </View>
 
         {filteredLessons.length === 0 ? (
           <Text style={styles.empty}>No matching truths found.</Text>
@@ -81,16 +102,12 @@ export default function AdminScreen() {
                 <>
                   <Text style={styles.text}>{lesson.lesson}</Text>
                   <View style={styles.row}>
-                    <TouchableOpacity
-                      onPress={() => startEditing(lesson.id, lesson.lesson)}
-                    >
+                    <TouchableOpacity onPress={() => startEditing(lesson.id, lesson.lesson)}>
                       <Text style={styles.action}>Edit</Text>
                     </TouchableOpacity>
-                    {!lesson.approved && (
-                      <TouchableOpacity onPress={() => approveLesson(lesson.id)}>
-                        <Text style={styles.action}>Approve</Text>
-                      </TouchableOpacity>
-                    )}
+                    <TouchableOpacity onPress={() => approveLesson(lesson.id)}>
+                      <Text style={styles.action}>Approve</Text>
+                    </TouchableOpacity>
                     <TouchableOpacity onPress={() => deleteLesson(lesson.id)}>
                       <Text style={styles.delete}>Delete</Text>
                     </TouchableOpacity>
@@ -106,14 +123,8 @@ export default function AdminScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  container: {
-    paddingHorizontal: 16,
-    paddingBottom: 32,
-  },
+  safe: { flex: 1, backgroundColor: '#fff' },
+  container: { paddingHorizontal: 16, paddingBottom: 32 },
   title: {
     fontSize: 16,
     fontWeight: '600',
@@ -127,6 +138,22 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     fontSize: 14,
     marginBottom: 20,
+    color: '#000',
+  },
+  addRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    gap: 12,
+  },
+  input: {
+    backgroundColor: '#fff',
+    borderColor: '#ddd',
+    borderWidth: 1,
+    borderRadius: 6,
+    padding: 10,
+    fontSize: 14,
+    flex: 1,
     color: '#000',
   },
   empty: {
@@ -145,16 +172,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginBottom: 10,
     color: '#333',
-  },
-  input: {
-    backgroundColor: '#fff',
-    borderColor: '#ddd',
-    borderWidth: 1,
-    borderRadius: 6,
-    padding: 10,
-    fontSize: 14,
-    marginBottom: 8,
-    color: '#000',
   },
   row: {
     flexDirection: 'row',

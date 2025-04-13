@@ -1,17 +1,31 @@
 import React, { useState } from 'react';
-import { StyleSheet, FlatList, SafeAreaView, View, Text } from 'react-native';
+import {
+    StyleSheet,
+    FlatList,
+    SafeAreaView,
+    View,
+    Text,
+    TouchableOpacity,
+} from 'react-native';
 import LessonCard from '@/components/LessonCard';
+import FullScreenLesson from '@/components/FullScreenLesson';
 import { useLessons } from '@/store/lessonStore';
+import AddTruthModal from '@/components/AddTruthModal';
 
 export default function CommunityScreen() {
     const userId = 'user123';
     const userName = 'Jane Doe';
-    const { voteLesson, getUserSubmittedLessons } = useLessons();
+    const { voteLesson, getUserSubmittedLessons, addLesson } = useLessons();
     const [selectedLesson, setSelectedLesson] = useState(null);
+    const [showAddModal, setShowAddModal] = useState(false);
 
     const unapprovedLessons = getUserSubmittedLessons();
 
-    const handleVote = (lessonId: string, userId: string, voteType: 'up' | 'down' | null) => {
+    const handleVote = (
+        lessonId: string,
+        userId: string,
+        voteType: 'up' | 'down' | null
+    ) => {
         voteLesson(lessonId, userId, voteType);
     };
 
@@ -23,6 +37,10 @@ export default function CommunityScreen() {
         setSelectedLesson(null);
     };
 
+    const handleAddNew = (lesson: { title: string; anecdote: string }) => {
+        addLesson(lesson);
+    };
+
     const renderLessonCard = ({ item }: { item: any }) => (
         <LessonCard
             lesson={item}
@@ -32,9 +50,26 @@ export default function CommunityScreen() {
         />
     );
 
+    if (selectedLesson) {
+        return (
+            <FullScreenLesson
+                lesson={selectedLesson}
+                onClose={handleCloseLesson}
+                userId={userId}
+                userName={userName}
+                isAdmin={false}
+            />
+        );
+    }
+
     return (
         <SafeAreaView style={styles.container}>
             <Text style={styles.title}>Community Truths</Text>
+
+            <TouchableOpacity onPress={() => setShowAddModal(true)}>
+                <Text style={styles.addButton}>+ Add Your Truth</Text>
+            </TouchableOpacity>
+
             {unapprovedLessons.length > 0 ? (
                 <FlatList
                     data={unapprovedLessons}
@@ -47,6 +82,12 @@ export default function CommunityScreen() {
                     <Text style={styles.emptyText}>No unapproved truths yet.</Text>
                 </View>
             )}
+
+            <AddTruthModal
+                visible={showAddModal}
+                onClose={() => setShowAddModal(false)}
+                onSubmit={handleAddNew}
+            />
         </SafeAreaView>
     );
 }
@@ -74,5 +115,12 @@ const styles = StyleSheet.create({
     emptyText: {
         fontSize: 13,
         color: '#666',
+    },
+    addButton: {
+        color: '#007aff',
+        fontSize: 14,
+        fontWeight: '500',
+        marginBottom: 20,
+        textAlign: 'center',
     },
 });

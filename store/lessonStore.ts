@@ -2,7 +2,8 @@ import { useState } from 'react';
 
 type Lesson = {
   id: string;
-  lesson: string;
+  title: string;
+  anecdote: string;
   approved: boolean;
   votes: {
     [userId: string]: 'up' | 'down';
@@ -12,15 +13,17 @@ type Lesson = {
 const initialLessons: Lesson[] = [
   {
     id: '1',
-    lesson: 'You decide when you are disappointed.',
+    title: 'You decide when you are disappointed.',
+    anecdote: 'Expectations are silent contracts. You can tear them up anytime.',
     approved: true,
-    votes: {}
+    votes: {},
   },
   {
     id: '2',
-    lesson: 'You can’t fight every battle.',
+    title: 'You can’t fight every battle.',
+    anecdote: 'Pick your wars. A wise general knows when to stay silent.',
     approved: false,
-    votes: {}
+    votes: {},
   }
 ];
 
@@ -43,16 +46,29 @@ export function useLessons() {
     );
   };
 
-  const updateLessonText = (id: string, newText: string) => {
+  const updateLessonText = (id: string, newTitle: string) => {
     setLessons((prev) =>
       prev.map((l) =>
-        l.id === id ? { ...l, lesson: newText } : l
+        l.id === id ? { ...l, title: newTitle } : l
       )
     );
   };
 
   const deleteLesson = (id: string) => {
     setLessons((prev) => prev.filter((l) => l.id !== id));
+  };
+
+  const addLesson = (newTruth: { title: string; anecdote: string }) => {
+    setLessons((prev) => [
+      {
+        id: Date.now().toString(),
+        title: newTruth.title,
+        anecdote: newTruth.anecdote,
+        approved: false,
+        votes: {},
+      },
+      ...prev,
+    ]);
   };
 
   const voteLesson = (
@@ -71,7 +87,7 @@ export function useLessons() {
         }
         return {
           ...lesson,
-          votes: updatedVotes
+          votes: updatedVotes,
         };
       })
     );
@@ -84,6 +100,7 @@ export function useLessons() {
     approveLesson,
     updateLessonText,
     deleteLesson,
-    voteLesson
+    addLesson,
+    voteLesson,
   };
 }
