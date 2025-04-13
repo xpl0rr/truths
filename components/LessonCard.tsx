@@ -34,7 +34,7 @@ const LessonCard = ({ lesson, userId, onVote, onSelect }: Props) => {
       style={styles.container}
       activeOpacity={0.8}
     >
-      <Text style={styles.lessonText}>{lesson.lesson}</Text>
+      <Text style={styles.lessonText}>{lesson.title}</Text>
 
       <View style={styles.metaRow}>
         <Text style={styles.percent}>{approvalRate}% ({upvotes}/{totalVotes || 1})</Text>

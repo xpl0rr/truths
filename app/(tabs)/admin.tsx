@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { useLessons } from '@/store/lessonStore';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AddTruthModal from '@/components/AddTruthModal';
 
 export default function AdminScreen() {
   const {
@@ -23,7 +24,7 @@ export default function AdminScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editedText, setEditedText] = useState('');
-  const [newLesson, setNewLesson] = useState('');
+  const [showAddModal, setShowAddModal] = useState(false);
 
   const startEditing = (lessonId: string, currentText: string) => {
     setEditingId(lessonId);
@@ -40,11 +41,8 @@ export default function AdminScreen() {
     cancelEditing();
   };
 
-  const handleAddLesson = () => {
-    if (newLesson.trim()) {
-      addLesson(newLesson.trim());
-      setNewLesson('');
-    }
+  const handleAddNew = (lesson: { title: string; anecdote: string }) => {
+    addLesson(lesson);
   };
 
   const filteredLessons = allLessons.filter((lesson) =>
@@ -64,17 +62,9 @@ export default function AdminScreen() {
           onChangeText={setSearchQuery}
         />
 
-        <View style={styles.addRow}>
-          <TextInput
-            value={newLesson}
-            onChangeText={setNewLesson}
-            placeholder="Add new truth"
-            style={styles.input}
-          />
-          <TouchableOpacity onPress={handleAddLesson}>
-            <Text style={styles.action}>Add</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity onPress={() => setShowAddModal(true)}>
+          <Text style={styles.addButton}>+ Add Your Truth</Text>
+        </TouchableOpacity>
 
         {filteredLessons.length === 0 ? (
           <Text style={styles.empty}>No matching truths found.</Text>
@@ -100,9 +90,11 @@ export default function AdminScreen() {
                 </>
               ) : (
                 <>
-                  <Text style={styles.text}>{lesson.lesson}</Text>
+                  <Text style={styles.text}>{lesson.title}</Text>
                   <View style={styles.row}>
-                    <TouchableOpacity onPress={() => startEditing(lesson.id, lesson.lesson)}>
+                    <TouchableOpacity
+                      onPress={() => startEditing(lesson.id, lesson.title)}
+                    >
                       <Text style={styles.action}>Edit</Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => approveLesson(lesson.id)}>
@@ -118,6 +110,12 @@ export default function AdminScreen() {
           ))
         )}
       </ScrollView>
+
+      <AddTruthModal
+        visible={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSubmit={handleAddNew}
+      />
     </SafeAreaView>
   );
 }
@@ -140,12 +138,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     color: '#000',
   },
-  addRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-    gap: 12,
-  },
   input: {
     backgroundColor: '#fff',
     borderColor: '#ddd',
@@ -153,8 +145,15 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     padding: 10,
     fontSize: 14,
-    flex: 1,
+    marginBottom: 8,
     color: '#000',
+  },
+  addButton: {
+    color: '#007aff',
+    fontSize: 14,
+    fontWeight: '500',
+    marginBottom: 20,
+    textAlign: 'center',
   },
   empty: {
     textAlign: 'center',

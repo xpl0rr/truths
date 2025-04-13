@@ -6,10 +6,17 @@ import {
     TouchableOpacity,
     ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function FullScreenLesson({ lesson, onClose, userId, userName, isAdmin }) {
+export default function FullScreenLesson({
+    lesson,
+    onClose,
+    userId,
+    userName,
+    isAdmin,
+}) {
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={onClose} style={styles.backButton}>
                     <Text style={styles.backText}>← Back</Text>
@@ -17,17 +24,16 @@ export default function FullScreenLesson({ lesson, onClose, userId, userName, is
             </View>
 
             <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
-                <Text style={styles.title}>{lesson.lesson}</Text>
-
+                <Text style={styles.title}>{lesson.title}</Text>
                 <Text style={styles.submitted}>Submitted by {userName}</Text>
 
                 <View style={styles.anecdoteBox}>
                     <Text style={styles.anecdote}>
-                        {lesson.anecdote || lesson.lesson}
+                        {lesson.anecdote || lesson.title}
                     </Text>
                 </View>
             </ScrollView>
-        </View>
+        </SafeAreaView>
     );
 }
 

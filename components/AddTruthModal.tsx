@@ -6,6 +6,9 @@ import {
     StyleSheet,
     TextInput,
     TouchableOpacity,
+    ScrollView,
+    KeyboardAvoidingView,
+    Platform,
 } from 'react-native';
 
 export default function AddTruthModal({ visible, onClose, onSubmit }) {
@@ -23,64 +26,91 @@ export default function AddTruthModal({ visible, onClose, onSubmit }) {
 
     return (
         <Modal visible={visible} animationType="slide">
-            <View style={styles.container}>
-                <Text style={styles.title}>New Truth</Text>
-                <TextInput
-                    placeholder="Title"
-                    style={styles.input}
-                    value={title}
-                    onChangeText={setTitle}
-                />
-                <TextInput
-                    placeholder="Anecdote"
-                    style={[styles.input, styles.anecdote]}
-                    value={anecdote}
-                    onChangeText={setAnecdote}
-                    multiline
-                />
-                <View style={styles.buttonRow}>
-                    <TouchableOpacity onPress={handleSave}>
-                        <Text style={styles.button}>Save</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={onClose}>
-                        <Text style={styles.button}>Close</Text>
-                    </TouchableOpacity>
+            <KeyboardAvoidingView
+                style={styles.safe}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            >
+                <View style={styles.container}>
+                    <Text style={styles.title}>New Truth</Text>
+
+                    <TextInput
+                        placeholder="Title"
+                        style={styles.titleInput}
+                        value={title}
+                        onChangeText={setTitle}
+                        multiline
+                        numberOfLines={2}
+                        textAlignVertical="top"
+                    />
+
+                    <ScrollView contentContainerStyle={styles.scroll}>
+                        <TextInput
+                            placeholder="Anecdote"
+                            style={styles.anecdoteInput}
+                            value={anecdote}
+                            onChangeText={setAnecdote}
+                            multiline
+                            textAlignVertical="top"
+                        />
+                    </ScrollView>
+
+                    <View style={styles.buttonRow}>
+                        <TouchableOpacity onPress={handleSave}>
+                            <Text style={styles.button}>Save</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={onClose}>
+                            <Text style={styles.button}>Close</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
-            </View>
+            </KeyboardAvoidingView>
         </Modal>
     );
 }
 
 const styles = StyleSheet.create({
+    safe: {
+        flex: 1,
+        backgroundColor: '#fff',
+    },
     container: {
         flex: 1,
         padding: 20,
-        backgroundColor: '#fff',
     },
     title: {
         fontSize: 18,
         fontWeight: '600',
         textAlign: 'center',
-        marginBottom: 16,
+        marginBottom: 12,
     },
-    input: {
+    titleInput: {
         backgroundColor: '#f9f9f9',
         borderColor: '#ccc',
         borderWidth: 1,
         borderRadius: 8,
         padding: 12,
-        marginBottom: 12,
         fontSize: 14,
         color: '#000',
+        height: 60,
+        marginBottom: 12,
     },
-    anecdote: {
-        height: 120,
-        textAlignVertical: 'top',
+    scroll: {
+        flexGrow: 1,
+    },
+    anecdoteInput: {
+        backgroundColor: '#f9f9f9',
+        borderColor: '#ccc',
+        borderWidth: 1,
+        borderRadius: 8,
+        padding: 12,
+        fontSize: 14,
+        color: '#000',
+        minHeight: 240,
     },
     buttonRow: {
         flexDirection: 'row',
         justifyContent: 'space-around',
-        marginTop: 20,
+        paddingVertical: 20,
     },
     button: {
         color: '#007aff',
