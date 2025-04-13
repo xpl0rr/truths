@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   StyleSheet,
   FlatList,
@@ -9,16 +9,19 @@ import {
 import LessonCard from '@/components/LessonCard';
 import FullScreenLesson from '@/components/FullScreenLesson';
 import { useLessons } from '@/store/lessonStore';
+import { useLocalSearchParams } from 'expo-router';
 
 export default function TruthsScreen() {
   const userId = 'user123';
   const userName = 'Jane Doe';
-  const { voteLesson, getApprovedLessons } = useLessons();
+  const { getApprovedLessons, voteLesson } = useLessons();
   const [selectedLesson, setSelectedLesson] = useState(null);
+
+  const flatListRef = useRef<FlatList>(null);
+  const { scrollTo } = useLocalSearchParams();
 
   const approvedLessons = getApprovedLessons();
 
-  // 🧠 Compute weighted score to prevent 100% from 1 vote beating 99/100
   const computeScore = (lesson) => {
     const upvotes = Object.values(lesson.votes || {}).filter((v) => v === 'up').length;
     const downvotes = Object.values(lesson.votes || {}).filter((v) => v === 'down').length;
@@ -33,7 +36,11 @@ export default function TruthsScreen() {
     }))
     .sort((a, b) => b.score - a.score);
 
-  const handleVote = (lessonId: string, userId: string, voteType: 'up' | 'down' | null) => {
+  const handleVote = (
+    lessonId: string,
+    userId: string,
+    voteType: 'up' | 'down' | null
+  ) => {
     voteLesson(lessonId, userId, voteType);
   };
 
@@ -54,6 +61,17 @@ export default function TruthsScreen() {
     />
   );
 
+  useEffect(() => {
+    if (scrollTo && flatListRef.current) {
+      const index = sortedLessons.findIndex((l) => l.id === scrollTo);
+      if (index !== -1) {
+        setTimeout(() => {
+          flatListRef.current?.scrollToIndex({ index, animated: true });
+        }, 300);
+      }
+    }
+  }, [scrollTo, sortedLessons]);
+
   if (selectedLesson) {
     return (
       <FullScreenLesson
@@ -71,6 +89,7 @@ export default function TruthsScreen() {
       <Text style={styles.title}>If Gramma Was Sun Tzu</Text>
       {sortedLessons.length > 0 ? (
         <FlatList
+          ref={flatListRef}
           data={sortedLessons}
           renderItem={renderLessonCard}
           keyExtractor={(item) => item.id}

@@ -8,14 +8,19 @@ import {
     TouchableOpacity,
 } from 'react-native';
 import LessonCard from '@/components/LessonCard';
-import FullScreenLesson from '@/components/FullScreenLesson';
 import { useLessons } from '@/store/lessonStore';
 import AddTruthModal from '@/components/AddTruthModal';
+import FullScreenLesson from '@/components/FullScreenLesson';
 
 export default function CommunityScreen() {
     const userId = 'user123';
     const userName = 'Jane Doe';
-    const { voteLesson, getUserSubmittedLessons, addLesson } = useLessons();
+    const {
+        getUserSubmittedLessons,
+        addLesson,
+        voteLesson
+    } = useLessons();
+
     const [selectedLesson, setSelectedLesson] = useState(null);
     const [showAddModal, setShowAddModal] = useState(false);
 
@@ -38,7 +43,9 @@ export default function CommunityScreen() {
     };
 
     const handleAddNew = (lesson: { title: string; anecdote: string }) => {
-        addLesson(lesson);
+        const newId = Date.now().toString();
+        addLesson({ ...lesson, id: newId });
+        setShowAddModal(false);
     };
 
     const renderLessonCard = ({ item }: { item: any }) => (

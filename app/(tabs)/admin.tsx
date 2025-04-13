@@ -6,10 +6,14 @@ import {
   TouchableOpacity,
   TextInput,
   ScrollView,
+  ToastAndroid,
+  Platform,
+  Alert,
 } from 'react-native';
 import { useLessons } from '@/store/lessonStore';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AddTruthModal from '@/components/AddTruthModal';
+import { useRouter } from 'expo-router';
 
 export default function AdminScreen() {
   const {
@@ -19,6 +23,8 @@ export default function AdminScreen() {
     deleteLesson,
     addLesson,
   } = useLessons();
+
+  const router = useRouter();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -37,14 +43,27 @@ export default function AdminScreen() {
     setEditedText('');
   };
 
+  const notifySuccess = (message: string) => {
+    if (Platform.OS === 'android') {
+      ToastAndroid.show(message, ToastAndroid.SHORT);
+    } else {
+      Alert.alert(message);
+    }
+  };
+
   const handleSaveEdit = (lessonId: string) => {
-    updateLessonText(lessonId, editedText.trim(), true); // ✅ auto-approve
+    updateLessonText(lessonId, editedText.trim(), true);
     cancelEditing();
+    notifySuccess('Truth saved and promoted to main page');
+    router.push({ pathname: '/', params: { scrollTo: lessonId } });
   };
 
   const handleAddNew = (lesson: { title: string; anecdote: string }) => {
-    addLesson(lesson, { approved: true }); // ✅ auto-approve
+    const newId = Date.now().toString();
+    addLesson({ ...lesson, id: newId }, { approved: true });
+    notifySuccess('Truth added and promoted to main page');
     setShowAddModal(false);
+    router.push({ pathname: '/', params: { scrollTo: newId } });
   };
 
   const filtered = unapprovedLessons.filter((l) =>
@@ -97,7 +116,13 @@ export default function AdminScreen() {
                     <TouchableOpacity onPress={() => startEditing(lesson.id, lesson.title)}>
                       <Text style={styles.action}>Edit</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => approveLesson(lesson.id)}>
+                    <TouchableOpacity
+                      onPress={() => {
+                        approveLesson(lesson.id);
+                        notifySuccess('Approved and sent to main page');
+                        router.push({ pathname: '/', params: { scrollTo: lesson.id } });
+                      }}
+                    >
                       <Text style={styles.action}>Approve</Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => deleteLesson(lesson.id)}>

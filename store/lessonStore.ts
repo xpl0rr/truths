@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { create } from 'zustand';
+
+type VoteType = 'up' | 'down';
 
 type Lesson = {
   id: string;
@@ -6,108 +8,94 @@ type Lesson = {
   anecdote: string;
   approved: boolean;
   votes: {
-    [userId: string]: 'up' | 'down';
+    [userId: string]: VoteType;
   };
 };
 
-const initialLessons: Lesson[] = [
-  {
-    id: '1',
-    title: 'You decide when you are disappointed.',
-    anecdote: 'Expectations are silent contracts. You can tear them up anytime.',
-    approved: true,
-    votes: {},
+type LessonStore = {
+  lessons: Lesson[];
+  getAllLessons: () => Lesson[];
+  getApprovedLessons: () => Lesson[];
+  getUserSubmittedLessons: () => Lesson[];
+  addLesson: (lesson: Lesson, options?: { approved?: boolean }) => void;
+  updateLessonText: (id: string, newTitle: string, markApproved?: boolean) => void;
+  deleteLesson: (id: string) => void;
+  approveLesson: (id: string) => void;
+  voteLesson: (lessonId: string, userId: string, voteType: VoteType | null) => void;
+};
+
+export const useLessons = create<LessonStore>((set, get) => ({
+  lessons: [
+    {
+      id: '1',
+      title: 'You decide when you are disappointed.',
+      anecdote: 'Expectations are silent contracts. You can tear them up anytime.',
+      approved: true,
+      votes: {},
+    },
+    {
+      id: '2',
+      title: 'You can’t fight every battle.',
+      anecdote: 'Pick your wars. A wise general knows when to stay silent.',
+      approved: false,
+      votes: {},
+    },
+  ],
+
+  getAllLessons: () => get().lessons,
+
+  getApprovedLessons: () =>
+    get().lessons.filter((l) => l.approved),
+
+  getUserSubmittedLessons: () =>
+    get().lessons.filter((l) => !l.approved),
+
+  addLesson: (newTruth, options = {}) => {
+    const lesson = {
+      ...newTruth,
+      approved: options.approved ?? false,
+      votes: {},
+    };
+    console.log('💾 [Zustand] Adding lesson:', lesson);
+    set((state) => ({
+      lessons: [lesson, ...state.lessons],
+    }));
   },
-  {
-    id: '2',
-    title: 'You can’t fight every battle.',
-    anecdote: 'Pick your wars. A wise general knows when to stay silent.',
-    approved: false,
-    votes: {},
-  }
-];
 
-export function useLessons() {
-  const [lessons, setLessons] = useState<Lesson[]>(initialLessons);
+  updateLessonText: (id, newTitle, markApproved = false) => {
+    set((state) => ({
+      lessons: state.lessons.map((l) =>
+        l.id === id ? { ...l, title: newTitle, approved: markApproved || l.approved } : l
+      ),
+    }));
+  },
 
-  const getAllLessons = () => lessons;
+  deleteLesson: (id) => {
+    set((state) => ({
+      lessons: state.lessons.filter((l) => l.id !== id),
+    }));
+  },
 
-  const getApprovedLessons = () =>
-    lessons.filter((l) => l.approved);
-
-  const getUserSubmittedLessons = () =>
-    lessons.filter((l) => !l.approved);
-
-  const approveLesson = (id: string) => {
-    setLessons((prev) =>
-      prev.map((l) =>
+  approveLesson: (id) => {
+    set((state) => ({
+      lessons: state.lessons.map((l) =>
         l.id === id ? { ...l, approved: true } : l
-      )
-    );
-  };
+      ),
+    }));
+  },
 
-  const updateLessonText = (id: string, newTitle: string, markApproved = false) => {
-    setLessons((prev) =>
-      prev.map((l) =>
-        l.id === id
-          ? { ...l, title: newTitle, approved: markApproved ? true : l.approved }
-          : l
-      )
-    );
-  };
-
-  const deleteLesson = (id: string) => {
-    setLessons((prev) => prev.filter((l) => l.id !== id));
-  };
-
-  const addLesson = (
-    newTruth: { title: string; anecdote: string },
-    options: { approved?: boolean } = {}
-  ) => {
-    setLessons((prev) => [
-      {
-        id: Date.now().toString(),
-        title: newTruth.title,
-        anecdote: newTruth.anecdote,
-        approved: options.approved ?? false,
-        votes: {},
-      },
-      ...prev,
-    ]);
-  };
-
-  const voteLesson = (
-    lessonId: string,
-    userId: string,
-    voteType: 'up' | 'down' | null
-  ) => {
-    setLessons((prev) =>
-      prev.map((lesson) => {
-        if (lesson.id !== lessonId) return lesson;
-        const updatedVotes = { ...lesson.votes };
+  voteLesson: (lessonId, userId, voteType) => {
+    set((state) => ({
+      lessons: state.lessons.map((l) => {
+        if (l.id !== lessonId) return l;
+        const updatedVotes = { ...l.votes };
         if (voteType === null) {
           delete updatedVotes[userId];
         } else {
           updatedVotes[userId] = voteType;
         }
-
-        // 👇 future: add promotion logic here
-        return {
-          ...lesson,
-          votes: updatedVotes,
-        };
-      })
-    );
-  };
-
-  return {
-    getAllLessons,
-    getApprovedLessons,
-    getUserSubmittedLessons,
-    approveLesson,
-    updateLessonText,
-    deleteLesson,
-    addLesson,
-    voteLesson,
-  };
-}
+        return { ...l, votes: updatedVotes };
+      }),
+    }));
+  },
+}));
