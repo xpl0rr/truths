@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
   },
   delete: {
     color: '#ff3b30',
-    fontSize: 13, x
+    fontSize: 13,
     fontWeight: '500',
   },
 });
