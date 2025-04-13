@@ -20,11 +20,12 @@ export default function AdminScreen() {
     addLesson,
   } = useLessons();
 
-  const allLessons = getAllLessons().filter((l) => !l.approved);
   const [searchQuery, setSearchQuery] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editedText, setEditedText] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+
+  const unapprovedLessons = getAllLessons().filter((l) => !l.approved);
 
   const startEditing = (lessonId: string, currentText: string) => {
     setEditingId(lessonId);
@@ -37,22 +38,23 @@ export default function AdminScreen() {
   };
 
   const handleSaveEdit = (lessonId: string) => {
-    updateLessonText(lessonId, editedText.trim());
+    updateLessonText(lessonId, editedText.trim(), true);
     cancelEditing();
   };
 
   const handleAddNew = (lesson: { title: string; anecdote: string }) => {
-    addLesson(lesson);
+    addLesson(lesson, { approved: true });
+    setShowAddModal(false);
   };
 
-  const filteredLessons = allLessons.filter((lesson) =>
-    lesson.title.toLowerCase().includes(searchQuery.toLowerCase())
+  const filtered = unapprovedLessons.filter((l) =>
+    l.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>Admin — Manage All Truths</Text>
+        <Text style={styles.title}>Admin</Text>
 
         <TextInput
           style={styles.search}
@@ -66,10 +68,10 @@ export default function AdminScreen() {
           <Text style={styles.addButton}>+ Add Your Truth</Text>
         </TouchableOpacity>
 
-        {filteredLessons.length === 0 ? (
-          <Text style={styles.empty}>No matching truths found.</Text>
+        {filtered.length === 0 ? (
+          <Text style={styles.empty}>No unapproved truths found.</Text>
         ) : (
-          filteredLessons.map((lesson) => (
+          filtered.map((lesson) => (
             <View key={lesson.id} style={styles.card}>
               {editingId === lesson.id ? (
                 <>
@@ -92,9 +94,7 @@ export default function AdminScreen() {
                 <>
                   <Text style={styles.text}>{lesson.title}</Text>
                   <View style={styles.row}>
-                    <TouchableOpacity
-                      onPress={() => startEditing(lesson.id, lesson.title)}
-                    >
+                    <TouchableOpacity onPress={() => startEditing(lesson.id, lesson.title)}>
                       <Text style={styles.action}>Edit</Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => approveLesson(lesson.id)}>

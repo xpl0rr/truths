@@ -1,6 +1,11 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
+type TabBarIconProps = {
+  color: string;
+  size: number;
+};
+
 export default function TabLayout() {
   return (
     <Tabs
@@ -13,7 +18,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Truths',
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({ color, size }: TabBarIconProps) => (
             <Ionicons name="chatbubble-ellipses-outline" size={size} color={color} />
           ),
         }}
@@ -22,7 +27,7 @@ export default function TabLayout() {
         name="user-lessons"
         options={{
           title: 'Community',
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({ color, size }: TabBarIconProps) => (
             <Ionicons name="people-outline" size={size} color={color} />
           ),
         }}
@@ -31,7 +36,7 @@ export default function TabLayout() {
         name="admin"
         options={{
           title: 'Admin',
-          tabBarIcon: ({ color, size }) => (
+          tabBarIcon: ({ color, size }: TabBarIconProps) => (
             <Ionicons name="construct-outline" size={size} color={color} />
           ),
         }}

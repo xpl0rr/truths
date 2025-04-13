@@ -46,10 +46,12 @@ export function useLessons() {
     );
   };
 
-  const updateLessonText = (id: string, newTitle: string) => {
+  const updateLessonText = (id: string, newTitle: string, markApproved = false) => {
     setLessons((prev) =>
       prev.map((l) =>
-        l.id === id ? { ...l, title: newTitle } : l
+        l.id === id
+          ? { ...l, title: newTitle, approved: markApproved ? true : l.approved }
+          : l
       )
     );
   };
@@ -58,13 +60,16 @@ export function useLessons() {
     setLessons((prev) => prev.filter((l) => l.id !== id));
   };
 
-  const addLesson = (newTruth: { title: string; anecdote: string }) => {
+  const addLesson = (
+    newTruth: { title: string; anecdote: string },
+    options: { approved?: boolean } = {}
+  ) => {
     setLessons((prev) => [
       {
         id: Date.now().toString(),
         title: newTruth.title,
         anecdote: newTruth.anecdote,
-        approved: false,
+        approved: options.approved ?? false,
         votes: {},
       },
       ...prev,
@@ -85,6 +90,8 @@ export function useLessons() {
         } else {
           updatedVotes[userId] = voteType;
         }
+
+        // 👇 future: add promotion logic here
         return {
           ...lesson,
           votes: updatedVotes,
