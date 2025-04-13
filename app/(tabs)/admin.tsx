@@ -38,12 +38,12 @@ export default function AdminScreen() {
   };
 
   const handleSaveEdit = (lessonId: string) => {
-    updateLessonText(lessonId, editedText.trim(), true);
+    updateLessonText(lessonId, editedText.trim(), true); // ✅ auto-approve
     cancelEditing();
   };
 
   const handleAddNew = (lesson: { title: string; anecdote: string }) => {
-    addLesson(lesson, { approved: true });
+    addLesson(lesson, { approved: true }); // ✅ auto-approve
     setShowAddModal(false);
   };
 
