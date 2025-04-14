@@ -10,14 +10,17 @@ import {
   Platform,
   Alert,
 } from 'react-native';
+import textStyles from '../styles/textStyles';
 import { useLessons, useHydrateLessons } from '@/store/lessonStore-persist';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AddTruthModal from '@/components/AddTruthModal';
 import { useRouter } from 'expo-router';
-import FullScreenEditLesson from '../../components/FullScreenEditLesson';
+import FullScreenEditLessonMain from '../components/FullScreenEditLessonMain';
 import type { Lesson } from '@/store/lessonStore-persist';
 
 export default function AdminScreen() {
+  // All hooks, handlers, and filtering logic above
+
   const {
     getAllLessons,
     approveLesson,
@@ -29,26 +32,26 @@ export default function AdminScreen() {
   const router = useRouter();
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editedText, setEditedText] = useState('');
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [persistedId, setPersistedId] = useState<string | null>(null);
 
   const allLessons = getAllLessons();
   const unapprovedLessons = allLessons.filter((l) => !l.approved);
 
   const startEditing = (lessonObj: Lesson) => {
-    setEditingId(lessonObj.id);
     setEditingLesson(lessonObj);
   };
 
-  const cancelEditing = () => {
-    setEditingId(null);
+  const handleSaveEdit = (title: string, anecdote: string) => {
+  if (editingLesson) {
+    updateLessonText(editingLesson.id, title, editingLesson.approved, anecdote);
     setEditingLesson(null);
-    setEditedText('');
-    setPersistedId(null);
-  };
+  }
+};
+
+const handleCloseEdit = () => {
+  setEditingLesson(null);
+};
 
   const notifySuccess = (message: string) => {
     if (Platform.OS === 'android') {
@@ -58,12 +61,7 @@ export default function AdminScreen() {
     }
   };
 
-  const handleSaveEdit = (lessonId: string, newTitle: string, newAnecdote: string) => {
-    updateLessonText(lessonId, newTitle.trim(), true, newAnecdote.trim());
-    cancelEditing();
-    notifySuccess('Truth saved and promoted to main page');
-    router.push({ pathname: '/', params: { scrollTo: lessonId } });
-  };
+
 
   const handleAddNew = (lesson: { title: string; anecdote: string }) => {
     const newId = Date.now().toString();
@@ -76,17 +74,18 @@ export default function AdminScreen() {
 
   const filtered =
     searchQuery.trim().length === 0
-      ? []
+      ? allLessons.filter(
+          (l) => !l.approved && typeof l.title === 'string' && l.title.trim().length > 0
+        )
       : allLessons.filter(
           (l) =>
             typeof l.title === 'string' &&
             l.title.trim().length > 0 &&
             l.title.toLowerCase().includes(searchQuery.toLowerCase())
         );
-  const visibleLessons = persistedId
-    ? filtered.filter((l) => l.id === persistedId)
-    : filtered;
+  const visibleLessons = filtered;
 
+  // --- All rendering logic is now inside the function ---
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.container}>
@@ -121,33 +120,16 @@ export default function AdminScreen() {
           <Text style={styles.empty}>No unapproved truths.</Text>
         ) : (
            visibleLessons.map((lesson) => (
-            <View key={lesson.id} style={styles.card}>
-              <>
-                <Text style={styles.text}>{lesson.title}</Text>
-                <View style={styles.row}>
-                  <TouchableOpacity onPress={() => {
-                    setPersistedId(lesson.id);
-                    startEditing(lesson);
-                  }}>
-                    <Text style={styles.action}>Edit</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => {
-                      approveLesson(lesson.id);
-                      notifySuccess('Approved and sent to main page');
-                      router.push({ pathname: '/', params: { scrollTo: lesson.id } });
-                    }}
-                  >
-                    <Text style={styles.action}>Approve</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => deleteLesson(lesson.id)}>
-                    <Text style={styles.delete}>Delete</Text>
-                  </TouchableOpacity>
-                </View>
-              </>
-            </View>
+            <TouchableOpacity
+              key={lesson.id}
+              style={styles.card}
+              onPress={() => startEditing(lesson)}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.text}>{lesson.title}</Text>
+            </TouchableOpacity>
           ))
-        )}
+        )} 
       </ScrollView>
 
       <AddTruthModal
@@ -156,11 +138,11 @@ export default function AdminScreen() {
         onSubmit={handleAddNew}
       />
       {editingLesson && (
-        <FullScreenEditLesson
+        <FullScreenEditLessonMain
           visible={!!editingLesson}
           lesson={editingLesson}
-          onSave={(title, anecdote) => handleSaveEdit(editingLesson.id, title, anecdote)}
-          onClose={cancelEditing}
+          onSave={handleSaveEdit}
+          onClose={handleCloseEdit}
         />
       )}
     </SafeAreaView>

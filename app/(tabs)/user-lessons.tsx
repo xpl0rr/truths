@@ -7,6 +7,7 @@ import {
     Text,
     TouchableOpacity,
 } from 'react-native';
+import textStyles from '../styles/textStyles';
 import LessonCard from '@/components/LessonCard';
 import { useLessons } from '@/store/lessonStore';
 import AddTruthModal from '@/components/AddTruthModal';

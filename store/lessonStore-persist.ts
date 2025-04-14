@@ -45,7 +45,11 @@ export const useLessons = create<LessonStore>((set, get) => ({
   hydrateLessons: async () => {
     const raw = await AsyncStorage.getItem(LESSONS_KEY);
     if (raw) {
-      set({ lessons: JSON.parse(raw), hydrated: true });
+      let lessons = JSON.parse(raw);
+      // Remove or fix malformed lessons
+      lessons = lessons.filter((l: any) => typeof l.title === 'string' && l.title.trim().length > 0);
+      set({ lessons, hydrated: true });
+      await AsyncStorage.setItem(LESSONS_KEY, JSON.stringify(lessons));
     } else {
       set({ hydrated: true });
     }

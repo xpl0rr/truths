@@ -10,37 +10,46 @@ import {
   Platform,
   Alert,
 } from 'react-native';
-import { useLessons, useHydrateLessons } from '@/store/lessonStore-persist';
+import textStyles from '../styles/textStyles';
+import { useLessons, useHydrateLessons, type Lesson } from '@/store/lessonStore-persist';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AddTruthModal from '@/components/AddTruthModal';
 import { useRouter } from 'expo-router';
-import FullScreenLesson from '../../components/FullScreenLesson';
+import FullScreenEditLessonMain from '../components/FullScreenEditLessonMain';
 
 export default function TruthsScreen() {
   const hydrated = useHydrateLessons();
-  const { getApprovedLessons } = useLessons();
-  const [selectedLesson, setSelectedLesson] = useState(null);
+  const { getApprovedLessons, updateLessonText } = useLessons();
+  const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
 
   if (!hydrated) return null;
 
   const approvedLessons = getApprovedLessons();
 
+  const handleSave = (title: string, anecdote: string) => {
+    if (selectedLesson) {
+      updateLessonText(selectedLesson.id, title, selectedLesson.approved, anecdote);
+      setSelectedLesson(null);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safe}>
       {selectedLesson ? (
-        <FullScreenLesson
+        <FullScreenEditLessonMain
+          visible={!!selectedLesson}
           lesson={selectedLesson}
+          onSave={handleSave}
           onClose={() => setSelectedLesson(null)}
-          userId={undefined}
-          userName={undefined}
-          isAdmin={undefined}
         />
       ) : (
         <>
-          <Text style={styles.title}>If Gramma Was Sun Tsu</Text>
+          <View style={{alignItems: 'center'}}>
+  <Text style={styles.title}>If Gramma Was Sun Tsu</Text>
+</View>
           <ScrollView contentContainerStyle={styles.container}>
             {approvedLessons.length === 0 ? (
-              <Text style={styles.empty}>No truths yet.</Text>
+              <Text style={textStyles.body}>No truths yet.</Text>
             ) : (
               approvedLessons.map((lesson) => (
                 <TouchableOpacity
@@ -49,7 +58,7 @@ export default function TruthsScreen() {
                   onPress={() => setSelectedLesson(lesson)}
                   activeOpacity={0.85}
                 >
-                  <Text style={styles.text}>{lesson.lesson || lesson.title}</Text>
+                  <Text style={styles.text}>{lesson.title}</Text>
                 </TouchableOpacity>
               ))
             )}
