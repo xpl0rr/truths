@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 // --- Types ---
 type VoteType = 'up' | 'down';
 
-type Lesson = {
+export type Lesson = {
   id: string;
   title: string;
   anecdote: string;
@@ -21,12 +21,13 @@ type LessonStore = {
   getAllLessons: () => Lesson[];
   getApprovedLessons: () => Lesson[];
   getUserSubmittedLessons: () => Lesson[];
-  addLesson: (lesson: Lesson, options?: { approved?: boolean }) => void;
-  updateLessonText: (id: string, newTitle: string, markApproved?: boolean) => void;
+  addLesson: (lesson: Partial<Lesson> & { title: string; anecdote: string; id: string }, options?: { approved?: boolean }) => void;
+  updateLessonText: (id: string, newTitle: string, markApproved?: boolean, newAnecdote?: string) => void;
   deleteLesson: (id: string) => void;
   approveLesson: (id: string) => void;
   voteLesson: (lessonId: string, userId: string, voteType: VoteType | null) => void;
   hydrateLessons: () => Promise<void>;
+  persistLessons: (lessons: Lesson[]) => Promise<void>;
 };
 
 const LESSONS_KEY = 'truths_lessons';
@@ -67,11 +68,16 @@ export const useLessons = create<LessonStore>((set, get) => ({
     });
   },
 
-  updateLessonText: (id, newTitle, markApproved = false) => {
+  updateLessonText: (id: string, newTitle: string, markApproved = false, newAnecdote?: string) => {
     set((state) => {
       const lessons = state.lessons.map((l) =>
         l.id === id
-          ? { ...l, title: newTitle, approved: markApproved ? true : l.approved }
+          ? {
+              ...l,
+              title: newTitle,
+              anecdote: newAnecdote !== undefined ? newAnecdote : l.anecdote,
+              approved: markApproved ? true : l.approved,
+            }
           : l
       );
       get().persistLessons(lessons);

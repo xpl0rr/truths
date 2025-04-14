@@ -10,15 +10,18 @@ import {
   Platform,
   Alert,
 } from 'react-native';
-import { useLessons } from '@/store/lessonStore';
+import { useLessons, useHydrateLessons } from '@/store/lessonStore-persist';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AddTruthModal from '@/components/AddTruthModal';
 import { useRouter } from 'expo-router';
 import FullScreenLesson from '../../components/FullScreenLesson';
 
 export default function TruthsScreen() {
+  const hydrated = useHydrateLessons();
   const { getApprovedLessons } = useLessons();
   const [selectedLesson, setSelectedLesson] = useState(null);
+
+  if (!hydrated) return null;
 
   const approvedLessons = getApprovedLessons();
 

@@ -10,10 +10,12 @@ import {
   Platform,
   Alert,
 } from 'react-native';
-import { useLessons } from '@/store/lessonStore';
+import { useLessons, useHydrateLessons } from '@/store/lessonStore-persist';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AddTruthModal from '@/components/AddTruthModal';
 import { useRouter } from 'expo-router';
+import FullScreenEditLesson from '../../components/FullScreenEditLesson';
+import type { Lesson } from '@/store/lessonStore-persist';
 
 export default function AdminScreen() {
   const {
@@ -29,19 +31,21 @@ export default function AdminScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editedText, setEditedText] = useState('');
+  const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [persistedId, setPersistedId] = useState<string | null>(null);
 
   const allLessons = getAllLessons();
   const unapprovedLessons = allLessons.filter((l) => !l.approved);
 
-  const startEditing = (lessonId: string, currentText: string) => {
-    setEditingId(lessonId);
-    setEditedText(currentText);
+  const startEditing = (lessonObj: Lesson) => {
+    setEditingId(lessonObj.id);
+    setEditingLesson(lessonObj);
   };
 
   const cancelEditing = () => {
     setEditingId(null);
+    setEditingLesson(null);
     setEditedText('');
     setPersistedId(null);
   };
@@ -54,8 +58,8 @@ export default function AdminScreen() {
     }
   };
 
-  const handleSaveEdit = (lessonId: string) => {
-    updateLessonText(lessonId, editedText.trim(), true);
+  const handleSaveEdit = (lessonId: string, newTitle: string, newAnecdote: string) => {
+    updateLessonText(lessonId, newTitle.trim(), true, newAnecdote.trim());
     cancelEditing();
     notifySuccess('Truth saved and promoted to main page');
     router.push({ pathname: '/', params: { scrollTo: lessonId } });
@@ -64,7 +68,7 @@ export default function AdminScreen() {
   const handleAddNew = (lesson: { title: string; anecdote: string }) => {
     const newId = Date.now().toString();
     // Always use 'lesson' as the property for the title
-    addLesson({ lesson: lesson.title, anecdote: lesson.anecdote, id: newId }, { approved: true });
+    addLesson({ title: lesson.title, anecdote: lesson.anecdote, id: newId }, { approved: true });
     notifySuccess('Truth added and promoted to main page');
     setShowAddModal(false);
     router.push({ pathname: '/', params: { scrollTo: newId } });
@@ -73,8 +77,11 @@ export default function AdminScreen() {
   const filtered =
     searchQuery.trim().length === 0
       ? []
-      : allLessons.filter((l) =>
-          (l.lesson || l.title).toLowerCase().includes(searchQuery.toLowerCase())
+      : allLessons.filter(
+          (l) =>
+            typeof l.title === 'string' &&
+            l.title.trim().length > 0 &&
+            l.title.toLowerCase().includes(searchQuery.toLowerCase())
         );
   const visibleLessons = persistedId
     ? filtered.filter((l) => l.id === persistedId)
@@ -85,17 +92,21 @@ export default function AdminScreen() {
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.title}>Admin</Text>
 
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <View style={{ position: 'relative', justifyContent: 'center' }}>
           <TextInput
-            style={[styles.search, { flex: 1 }]}
+            style={[styles.search, { paddingRight: 36, height: 44 }]}
             placeholder="Search truths..."
             placeholderTextColor="#999"
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
           {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchQuery('')} style={{ marginLeft: -30, zIndex: 2 }}>
-              <Text style={{ fontSize: 22, color: '#999' }}>×</Text>
+            <TouchableOpacity
+              onPress={() => setSearchQuery('')}
+              style={{ position: 'absolute', right: 12, top: 0, height: 44, justifyContent: 'center', alignItems: 'center' }}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Text style={{ fontSize: 22, color: '#999', lineHeight: 24 }}>×</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -111,48 +122,29 @@ export default function AdminScreen() {
         ) : (
            visibleLessons.map((lesson) => (
             <View key={lesson.id} style={styles.card}>
-              {editingId === lesson.id ? (
-                <>
-                  <TextInput
-                    value={editedText}
-                    onChangeText={setEditedText}
-                    style={styles.input}
-                    multiline
-                  />
-                  <View style={styles.row}>
-                    <TouchableOpacity onPress={() => handleSaveEdit(lesson.id)}>
-                      <Text style={styles.action}>Save</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={cancelEditing}>
-                      <Text style={styles.action}>Cancel</Text>
-                    </TouchableOpacity>
-                  </View>
-                </>
-              ) : (
-                <>
-                  <Text style={styles.text}>{lesson.lesson || lesson.title}</Text>
-                  <View style={styles.row}>
-                    <TouchableOpacity onPress={() => {
-                      setPersistedId(lesson.id);
-                      startEditing(lesson.id, lesson.lesson || lesson.title);
-                    }}>
-                      <Text style={styles.action}>Edit</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => {
-                        approveLesson(lesson.id);
-                        notifySuccess('Approved and sent to main page');
-                        router.push({ pathname: '/', params: { scrollTo: lesson.id } });
-                      }}
-                    >
-                      <Text style={styles.action}>Approve</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => deleteLesson(lesson.id)}>
-                      <Text style={styles.delete}>Delete</Text>
-                    </TouchableOpacity>
-                  </View>
-                </>
-              )}
+              <>
+                <Text style={styles.text}>{lesson.title}</Text>
+                <View style={styles.row}>
+                  <TouchableOpacity onPress={() => {
+                    setPersistedId(lesson.id);
+                    startEditing(lesson);
+                  }}>
+                    <Text style={styles.action}>Edit</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => {
+                      approveLesson(lesson.id);
+                      notifySuccess('Approved and sent to main page');
+                      router.push({ pathname: '/', params: { scrollTo: lesson.id } });
+                    }}
+                  >
+                    <Text style={styles.action}>Approve</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => deleteLesson(lesson.id)}>
+                    <Text style={styles.delete}>Delete</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
             </View>
           ))
         )}
@@ -163,6 +155,14 @@ export default function AdminScreen() {
         onClose={() => setShowAddModal(false)}
         onSubmit={handleAddNew}
       />
+      {editingLesson && (
+        <FullScreenEditLesson
+          visible={!!editingLesson}
+          lesson={editingLesson}
+          onSave={(title, anecdote) => handleSaveEdit(editingLesson.id, title, anecdote)}
+          onClose={cancelEditing}
+        />
+      )}
     </SafeAreaView>
   );
 }
