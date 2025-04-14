@@ -30,8 +30,10 @@ export default function AdminScreen() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editedText, setEditedText] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [persistedId, setPersistedId] = useState<string | null>(null);
 
-  const unapprovedLessons = getAllLessons().filter((l) => !l.approved);
+  const allLessons = getAllLessons();
+  const unapprovedLessons = allLessons.filter((l) => !l.approved);
 
   const startEditing = (lessonId: string, currentText: string) => {
     setEditingId(lessonId);
@@ -41,6 +43,7 @@ export default function AdminScreen() {
   const cancelEditing = () => {
     setEditingId(null);
     setEditedText('');
+    setPersistedId(null);
   };
 
   const notifySuccess = (message: string) => {
@@ -60,37 +63,53 @@ export default function AdminScreen() {
 
   const handleAddNew = (lesson: { title: string; anecdote: string }) => {
     const newId = Date.now().toString();
-    addLesson({ ...lesson, id: newId }, { approved: true });
+    // Always use 'lesson' as the property for the title
+    addLesson({ lesson: lesson.title, anecdote: lesson.anecdote, id: newId }, { approved: true });
     notifySuccess('Truth added and promoted to main page');
     setShowAddModal(false);
     router.push({ pathname: '/', params: { scrollTo: newId } });
   };
 
-  const filtered = unapprovedLessons.filter((l) =>
-    l.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filtered =
+    searchQuery.trim().length === 0
+      ? []
+      : allLessons.filter((l) =>
+          (l.lesson || l.title).toLowerCase().includes(searchQuery.toLowerCase())
+        );
+  const visibleLessons = persistedId
+    ? filtered.filter((l) => l.id === persistedId)
+    : filtered;
 
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.title}>Admin</Text>
 
-        <TextInput
-          style={styles.search}
-          placeholder="Search truths..."
-          placeholderTextColor="#999"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <TextInput
+            style={[styles.search, { flex: 1 }]}
+            placeholder="Search truths..."
+            placeholderTextColor="#999"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')} style={{ marginLeft: -30, zIndex: 2 }}>
+              <Text style={{ fontSize: 22, color: '#999' }}>×</Text>
+            </TouchableOpacity>
+          )}
+        </View>
 
         <TouchableOpacity onPress={() => setShowAddModal(true)}>
           <Text style={styles.addButton}>+ Add Your Truth</Text>
         </TouchableOpacity>
 
-        {filtered.length === 0 ? (
-          <Text style={styles.empty}>No unapproved truths found.</Text>
+        {filtered.length === 0 && searchQuery.length > 0 ? (
+          <Text style={styles.empty}>No matches found.</Text>
+        ) : filtered.length === 0 ? (
+          <Text style={styles.empty}>No unapproved truths.</Text>
         ) : (
-          filtered.map((lesson) => (
+           visibleLessons.map((lesson) => (
             <View key={lesson.id} style={styles.card}>
               {editingId === lesson.id ? (
                 <>
@@ -111,9 +130,12 @@ export default function AdminScreen() {
                 </>
               ) : (
                 <>
-                  <Text style={styles.text}>{lesson.title}</Text>
+                  <Text style={styles.text}>{lesson.lesson || lesson.title}</Text>
                   <View style={styles.row}>
-                    <TouchableOpacity onPress={() => startEditing(lesson.id, lesson.title)}>
+                    <TouchableOpacity onPress={() => {
+                      setPersistedId(lesson.id);
+                      startEditing(lesson.id, lesson.lesson || lesson.title);
+                    }}>
                       <Text style={styles.action}>Edit</Text>
                     </TouchableOpacity>
                     <TouchableOpacity

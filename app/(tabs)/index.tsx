@@ -1,131 +1,127 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import {
-  StyleSheet,
-  FlatList,
-  SafeAreaView,
   View,
   Text,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  ScrollView,
+  ToastAndroid,
+  Platform,
+  Alert,
 } from 'react-native';
-import LessonCard from '@/components/LessonCard';
-import FullScreenLesson from '@/components/FullScreenLesson';
 import { useLessons } from '@/store/lessonStore';
-import { useLocalSearchParams } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import AddTruthModal from '@/components/AddTruthModal';
+import { useRouter } from 'expo-router';
+import FullScreenLesson from '../../components/FullScreenLesson';
 
 export default function TruthsScreen() {
-  const userId = 'user123';
-  const userName = 'Jane Doe';
-  const { getApprovedLessons, voteLesson } = useLessons();
+  const { getApprovedLessons } = useLessons();
   const [selectedLesson, setSelectedLesson] = useState(null);
-
-  const flatListRef = useRef<FlatList>(null);
-  const { scrollTo } = useLocalSearchParams();
 
   const approvedLessons = getApprovedLessons();
 
-  const computeScore = (lesson) => {
-    const upvotes = Object.values(lesson.votes || {}).filter((v) => v === 'up').length;
-    const downvotes = Object.values(lesson.votes || {}).filter((v) => v === 'down').length;
-    const total = upvotes + downvotes;
-    return total === 0 ? 0 : (upvotes + 1) / (total + 2); // Laplace smoothing
-  };
-
-  const sortedLessons = approvedLessons
-    .map((lesson) => ({
-      ...lesson,
-      score: computeScore(lesson),
-    }))
-    .sort((a, b) => b.score - a.score);
-
-  const handleVote = (
-    lessonId: string,
-    userId: string,
-    voteType: 'up' | 'down' | null
-  ) => {
-    voteLesson(lessonId, userId, voteType);
-  };
-
-  const handleOpenLesson = (lesson: any) => {
-    setSelectedLesson(lesson);
-  };
-
-  const handleCloseLesson = () => {
-    setSelectedLesson(null);
-  };
-
-  const renderLessonCard = ({ item }: { item: any }) => (
-    <LessonCard
-      lesson={item}
-      userId={userId}
-      onVote={handleVote}
-      onSelect={handleOpenLesson}
-    />
-  );
-
-  useEffect(() => {
-    if (scrollTo && flatListRef.current) {
-      const index = sortedLessons.findIndex((l) => l.id === scrollTo);
-      if (index !== -1) {
-        setTimeout(() => {
-          flatListRef.current?.scrollToIndex({ index, animated: true });
-        }, 300);
-      }
-    }
-  }, [scrollTo, sortedLessons]);
-
-  if (selectedLesson) {
-    return (
-      <FullScreenLesson
-        lesson={selectedLesson}
-        onClose={handleCloseLesson}
-        userId={userId}
-        userName={userName}
-        isAdmin={false}
-      />
-    );
-  }
-
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>If Gramma Was Sun Tzu</Text>
-      {sortedLessons.length > 0 ? (
-        <FlatList
-          ref={flatListRef}
-          data={sortedLessons}
-          renderItem={renderLessonCard}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.list}
+    <SafeAreaView style={styles.safe}>
+      {selectedLesson ? (
+        <FullScreenLesson
+          lesson={selectedLesson}
+          onClose={() => setSelectedLesson(null)}
+          userId={undefined}
+          userName={undefined}
+          isAdmin={undefined}
         />
       ) : (
-        <View style={styles.empty}>
-          <Text style={styles.emptyText}>No truths yet.</Text>
-        </View>
+        <>
+          <Text style={styles.title}>If Gramma Was Sun Tsu</Text>
+          <ScrollView contentContainerStyle={styles.container}>
+            {approvedLessons.length === 0 ? (
+              <Text style={styles.empty}>No truths yet.</Text>
+            ) : (
+              approvedLessons.map((lesson) => (
+                <TouchableOpacity
+                  key={lesson.id}
+                  style={styles.card}
+                  onPress={() => setSelectedLesson(lesson)}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.text}>{lesson.lesson || lesson.title}</Text>
+                </TouchableOpacity>
+              ))
+            )}
+          </ScrollView>
+        </>
       )}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
+  safe: { flex: 1, backgroundColor: '#fff' },
+  container: { paddingHorizontal: 16, paddingBottom: 32 },
   title: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
-    paddingVertical: 16,
+    marginVertical: 16,
     color: '#111',
   },
-  list: {
-    paddingHorizontal: 12,
+  search: {
+    backgroundColor: '#f1f1f1',
+    padding: 10,
+    borderRadius: 8,
+    fontSize: 14,
+    marginBottom: 20,
+    color: '#000',
+  },
+  input: {
+    backgroundColor: '#fff',
+    borderColor: '#ddd',
+    borderWidth: 1,
+    borderRadius: 6,
+    padding: 10,
+    fontSize: 14,
+    marginBottom: 8,
+    color: '#000',
+  },
+  addButton: {
+    color: '#007aff',
+    fontSize: 14,
+    fontWeight: '500',
+    marginBottom: 20,
+    textAlign: 'center',
   },
   empty: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    textAlign: 'center',
+    fontSize: 14,
+    color: '#777',
+    marginTop: 40,
   },
-  emptyText: {
+  card: {
+    backgroundColor: '#f2f2f2',
+    padding: 14,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  text: {
+    fontSize: 14,
+    marginBottom: 10,
+    color: '#333',
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    gap: 12,
+  },
+  action: {
+    color: '#007aff',
     fontSize: 13,
-    color: '#666',
+    fontWeight: '500',
+  },
+  delete: {
+    color: '#ff3b30',
+    fontSize: 13,
+    fontWeight: '500',
   },
 });

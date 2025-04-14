@@ -24,12 +24,12 @@ export default function FullScreenLesson({
             </View>
 
             <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
-                <Text style={styles.title}>{lesson.title}</Text>
+                <Text style={styles.title}>{lesson.lesson}</Text>
                 <Text style={styles.submitted}>Submitted by {userName}</Text>
 
                 <View style={styles.anecdoteBox}>
                     <Text style={styles.anecdote}>
-                        {lesson.anecdote || lesson.title}
+                        {lesson.anecdote || lesson.lesson}
                     </Text>
                 </View>
             </ScrollView>
