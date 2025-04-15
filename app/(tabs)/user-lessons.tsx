@@ -9,11 +9,13 @@ import {
 } from 'react-native';
 import textStyles from '../styles/textStyles';
 import LessonCard from '@/components/LessonCard';
-import { useLessons } from '@/store/lessonStore';
-import AddTruthModal from '@/components/AddTruthModal';
+import { useLessons, useHydrateLessons } from '@/store/lessonStore-persist';
+import AddTruthModal from '../components/AddTruthModal';
 import FullScreenLesson from '@/components/FullScreenLesson';
 
 export default function CommunityScreen() {
+    const hydrated = useHydrateLessons();
+    if (!hydrated) return null;
     const userId = 'user123';
     const userName = 'Jane Doe';
     const {
@@ -43,9 +45,10 @@ export default function CommunityScreen() {
         setSelectedLesson(null);
     };
 
-    const handleAddNew = (lesson: { title: string; anecdote: string }) => {
+    const handleAddNew = (input: { lesson: string; anecdote: string }) => {
+    console.log('[Community handleAddNew] received:', input);
         const newId = Date.now().toString();
-        addLesson({ ...lesson, id: newId });
+        addLesson({ ...input, id: newId, isUserSubmitted: true });
         setShowAddModal(false);
     };
 
@@ -72,7 +75,7 @@ export default function CommunityScreen() {
 
     return (
         <SafeAreaView style={styles.container}>
-            <Text style={styles.title}>Community Truths</Text>
+            <Text style={styles.lesson}>Community Truths</Text>
 
             <TouchableOpacity onPress={() => setShowAddModal(true)}>
                 <Text style={styles.addButton}>+ Add Your Truth</Text>
@@ -94,7 +97,14 @@ export default function CommunityScreen() {
             <AddTruthModal
                 visible={showAddModal}
                 onClose={() => setShowAddModal(false)}
-                onSubmit={handleAddNew}
+                onSubmit={(input: { lesson: string; anecdote: string }) => {
+                    console.log('[AddTruthModal onSubmit] received:', input);
+                    if (!input.lesson || !input.lesson.trim()) {
+                        alert('Lesson is required!');
+                        return;
+                    }
+                    handleAddNew(input);
+                }}
             />
         </SafeAreaView>
     );
@@ -105,7 +115,7 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#fff',
     },
-    title: {
+    lesson: {
         fontSize: 16,
         fontWeight: '600',
         textAlign: 'center',

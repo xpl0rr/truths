@@ -6,12 +6,12 @@ import type { Lesson } from '@/store/lessonStore-persist';
 interface Props {
   visible: boolean;
   lesson: Lesson;
-  onSave: (title: string, anecdote: string) => void;
+  onSave: (lesson: string, anecdote: string) => void;
   onClose: () => void;
 }
 
 export default function FullScreenEditLessonMain({ visible, lesson, onSave, onClose }: Props) {
-  const [title, setTitle] = useState(lesson.title || '');
+  const [lessonText, setLessonText] = useState(lesson.lesson || '');
   const [anecdote, setAnecdote] = useState(lesson.anecdote || '');
 
   return (
@@ -30,9 +30,9 @@ export default function FullScreenEditLessonMain({ visible, lesson, onSave, onCl
           <View style={styles.fullScreenContainer}>
             <TextInput
               style={[textStyles.title, styles.titleInput]}
-              value={title}
-              onChangeText={setTitle}
-              placeholder="Title"
+              value={lessonText}
+              onChangeText={setLessonText}
+              placeholder="Lesson"
               placeholderTextColor="#aaa"
               returnKeyType="done"
               blurOnSubmit={true}
@@ -50,7 +50,7 @@ export default function FullScreenEditLessonMain({ visible, lesson, onSave, onCl
             />
             <View style={styles.buttonRowContainer}>
               <View style={styles.buttonRow}>
-                <TouchableOpacity style={styles.button} onPress={() => onSave(title, anecdote)}>
+                <TouchableOpacity style={styles.button} onPress={() => onSave(lessonText, anecdote)}>
                   <Text style={textStyles.button}>Save</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={[styles.button, styles.closeButton]} onPress={onClose}>

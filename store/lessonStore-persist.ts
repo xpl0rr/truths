@@ -37,25 +37,36 @@ export const useLessons = create<LessonStore>((set, get) => ({
   getUserSubmittedLessons: () => get().lessons.filter((l) => !l.isApproved),
 
   hydrateLessons: async () => {
+    console.debug('[hydrateLessons] called');
     const raw = await AsyncStorage.getItem(LESSONS_KEY);
     if (raw) {
+      console.debug('[hydrateLessons] loaded from AsyncStorage:', raw);
       let lessons = JSON.parse(raw);
       // Remove or fix malformed lessons
       lessons = lessons.filter((l: any) => typeof l.lesson === 'string' && l.lesson.trim().length > 0);
       set({ lessons, hydrated: true });
+      console.debug('[hydrateLessons] lessons set to:', lessons);
       await AsyncStorage.setItem(LESSONS_KEY, JSON.stringify(lessons));
     } else {
       set({ hydrated: true });
+      console.debug('[hydrateLessons] no lessons found in storage.');
     }
   },
 
   persistLessons: async (lessons: Lesson[]) => {
+    console.debug('[persistLessons] saving to AsyncStorage:', lessons);
     await AsyncStorage.setItem(LESSONS_KEY, JSON.stringify(lessons));
   },
 
   addLesson: (newTruth, options = {}) => {
+    let lessonText = typeof newTruth.lesson === 'string' && newTruth.lesson.trim().length > 0 ? newTruth.lesson.trim() : null;
+    if (!lessonText) {
+      console.error('[addLesson] Tried to add lesson with missing or empty lesson text:', newTruth);
+      lessonText = 'Untitled Lesson';
+    }
     const lesson: Lesson = {
       ...newTruth,
+      lesson: lessonText,
       upvotes: 0,
       downvotes: 0,
       voters: {},

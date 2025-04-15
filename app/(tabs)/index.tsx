@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import textStyles from '../styles/textStyles';
 import { useLessons, useHydrateLessons } from '@/store/lessonStore-persist';
-import type { Lesson } from '../models/Lesson';
+import type { Lesson } from '../../src/models/Lesson';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AddTruthModal from '@/components/AddTruthModal';
 import { useRouter } from 'expo-router';
@@ -27,9 +27,9 @@ export default function TruthsScreen() {
 
   const approvedLessons = getApprovedLessons();
 
-  const handleSave = (title: string, anecdote: string) => {
+  const handleSave = (lesson: string, anecdote: string) => {
     if (selectedLesson) {
-      updateLessonText(selectedLesson.id, title, selectedLesson.isApproved, anecdote);
+      updateLessonText(selectedLesson.id, lesson, selectedLesson.isApproved, anecdote);
       setSelectedLesson(null);
     }
   };

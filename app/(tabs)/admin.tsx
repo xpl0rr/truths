@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,12 +13,37 @@ import {
 import textStyles from '../styles/textStyles';
 import { useLessons, useHydrateLessons } from '@/store/lessonStore-persist';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import AddTruthModal from '@/components/AddTruthModal';
+import AddTruthModal from '../components/AddTruthModal';
 import { useRouter } from 'expo-router';
 import FullScreenEditLessonMain from '../components/FullScreenEditLessonMain';
-import type { Lesson } from '../models/Lesson';
+import type { Lesson } from '../../src/models/Lesson';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+function DebugLessons() {
+  useEffect(() => {
+    async function debugPrintLessons() {
+      const raw = await AsyncStorage.getItem('truths_lessons');
+      if (!raw) {
+        console.log('No lessons found in storage.');
+      } else {
+        try {
+          const lessons = JSON.parse(raw);
+          console.log('Lessons in storage:', lessons);
+        } catch (e) {
+          console.log('Could not parse lessons:', raw);
+        }
+      }
+    }
+    debugPrintLessons();
+  }, []);
+  return null;
+}
 
 export default function AdminScreen() {
+  // Debug: show AsyncStorage contents in console
+  DebugLessons();
+  const hydrated = useHydrateLessons();
+  if (!hydrated) return null;
   // All hooks, handlers, and filtering logic above
 
   const {
@@ -42,9 +67,9 @@ export default function AdminScreen() {
     setEditingLesson(lessonObj);
   };
 
-  const handleSaveEdit = (title: string, anecdote: string) => {
+  const handleSaveEdit = (lesson: string, anecdote: string) => {
   if (editingLesson) {
-    updateLessonText(editingLesson.id, title, editingLesson.approved, anecdote);
+    updateLessonText(editingLesson.id, lesson, editingLesson.isApproved, anecdote);
     setEditingLesson(null);
   }
 };
@@ -63,10 +88,10 @@ const handleCloseEdit = () => {
 
 
 
-  const handleAddNew = (lesson: { title: string; anecdote: string }) => {
+  const handleAddNew = (input: { lesson: string; anecdote: string }) => {
+  console.log('[Admin handleAddNew] received:', input);
     const newId = Date.now().toString();
-    // Always use 'lesson' as the property for the title
-    addLesson({ title: lesson.title, anecdote: lesson.anecdote, id: newId }, { approved: true });
+    addLesson({ lesson: input.lesson, anecdote: input.anecdote, id: newId, isUserSubmitted: true }, { isApproved: true });
     notifySuccess('Truth added and promoted to main page');
     setShowAddModal(false);
     router.push({ pathname: '/', params: { scrollTo: newId } });
@@ -89,7 +114,7 @@ const handleCloseEdit = () => {
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>Admin</Text>
+        <Text style={styles.lesson}>Admin</Text>
 
         <View style={{ position: 'relative', justifyContent: 'center' }}>
           <TextInput
@@ -135,7 +160,14 @@ const handleCloseEdit = () => {
       <AddTruthModal
         visible={showAddModal}
         onClose={() => setShowAddModal(false)}
-        onSubmit={handleAddNew}
+        onSubmit={(input: { lesson: string; anecdote: string }) => {
+          console.log('[AddTruthModal onSubmit] received:', input);
+          if (!input.lesson || !input.lesson.trim()) {
+            alert('Lesson is required!');
+            return;
+          }
+          handleAddNew(input);
+        }}
       />
       {editingLesson && (
         <FullScreenEditLessonMain
@@ -152,7 +184,7 @@ const handleCloseEdit = () => {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#fff' },
   container: { paddingHorizontal: 16, paddingBottom: 32 },
-  title: {
+  lesson: {
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
