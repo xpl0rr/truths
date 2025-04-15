@@ -11,7 +11,8 @@ import {
   Alert,
 } from 'react-native';
 import textStyles from '../styles/textStyles';
-import { useLessons, useHydrateLessons, type Lesson } from '@/store/lessonStore-persist';
+import { useLessons, useHydrateLessons } from '@/store/lessonStore-persist';
+import type { Lesson } from '../models/Lesson';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AddTruthModal from '@/components/AddTruthModal';
 import { useRouter } from 'expo-router';
@@ -28,7 +29,7 @@ export default function TruthsScreen() {
 
   const handleSave = (title: string, anecdote: string) => {
     if (selectedLesson) {
-      updateLessonText(selectedLesson.id, title, selectedLesson.approved, anecdote);
+      updateLessonText(selectedLesson.id, title, selectedLesson.isApproved, anecdote);
       setSelectedLesson(null);
     }
   };
@@ -58,7 +59,7 @@ export default function TruthsScreen() {
                   onPress={() => setSelectedLesson(lesson)}
                   activeOpacity={0.85}
                 >
-                  <Text style={styles.text}>{lesson.title}</Text>
+                  <Text style={styles.text}>{lesson.lesson}</Text>
                 </TouchableOpacity>
               ))
             )}

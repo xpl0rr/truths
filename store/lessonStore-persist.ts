@@ -5,15 +5,9 @@ import { useEffect } from 'react';
 // --- Types ---
 type VoteType = 'up' | 'down';
 
-export type Lesson = {
-  id: string;
-  title: string;
-  anecdote: string;
-  approved: boolean;
-  votes: {
-    [userId: string]: VoteType;
-  };
-};
+import type { Lesson } from '../app/models/Lesson';
+
+
 
 type LessonStore = {
   lessons: Lesson[];
@@ -21,7 +15,7 @@ type LessonStore = {
   getAllLessons: () => Lesson[];
   getApprovedLessons: () => Lesson[];
   getUserSubmittedLessons: () => Lesson[];
-  addLesson: (lesson: Partial<Lesson> & { title: string; anecdote: string; id: string }, options?: { approved?: boolean }) => void;
+  addLesson: (lesson: Partial<Lesson> & { lesson: string; anecdote: string; id: string }, options?: { isApproved?: boolean }) => void;
   updateLessonText: (id: string, newTitle: string, markApproved?: boolean, newAnecdote?: string) => void;
   deleteLesson: (id: string) => void;
   approveLesson: (id: string) => void;
@@ -38,16 +32,16 @@ export const useLessons = create<LessonStore>((set, get) => ({
 
   getAllLessons: () => get().lessons,
 
-  getApprovedLessons: () => get().lessons.filter((l) => l.approved),
+  getApprovedLessons: () => get().lessons.filter((l) => l.isApproved),
 
-  getUserSubmittedLessons: () => get().lessons.filter((l) => !l.approved),
+  getUserSubmittedLessons: () => get().lessons.filter((l) => !l.isApproved),
 
   hydrateLessons: async () => {
     const raw = await AsyncStorage.getItem(LESSONS_KEY);
     if (raw) {
       let lessons = JSON.parse(raw);
       // Remove or fix malformed lessons
-      lessons = lessons.filter((l: any) => typeof l.title === 'string' && l.title.trim().length > 0);
+      lessons = lessons.filter((l: any) => typeof l.lesson === 'string' && l.lesson.trim().length > 0);
       set({ lessons, hydrated: true });
       await AsyncStorage.setItem(LESSONS_KEY, JSON.stringify(lessons));
     } else {
@@ -60,10 +54,18 @@ export const useLessons = create<LessonStore>((set, get) => ({
   },
 
   addLesson: (newTruth, options = {}) => {
-    const lesson = {
+    const lesson: Lesson = {
       ...newTruth,
-      approved: options.approved ?? false,
-      votes: {},
+      upvotes: 0,
+      downvotes: 0,
+      voters: {},
+      createdAt: new Date(),
+      userId: newTruth.userId || 'admin',
+      userName: newTruth.userName || 'Admin',
+      isUserSubmitted: !!newTruth.isUserSubmitted,
+      isApproved: options.isApproved ?? false,
+      approvalThreshold: 10,
+      comments: [],
     };
     set((state) => {
       const lessons = [lesson, ...state.lessons];
@@ -72,15 +74,15 @@ export const useLessons = create<LessonStore>((set, get) => ({
     });
   },
 
-  updateLessonText: (id: string, newTitle: string, markApproved = false, newAnecdote?: string) => {
+  updateLessonText: (id: string, newLesson: string, markApproved = false, newAnecdote?: string) => {
     set((state) => {
       const lessons = state.lessons.map((l) =>
         l.id === id
           ? {
               ...l,
-              title: newTitle,
+              lesson: newLesson,
               anecdote: newAnecdote !== undefined ? newAnecdote : l.anecdote,
-              approved: markApproved ? true : l.approved,
+              isApproved: markApproved ? true : l.isApproved,
             }
           : l
       );
@@ -100,7 +102,7 @@ export const useLessons = create<LessonStore>((set, get) => ({
   approveLesson: (id) => {
     set((state) => {
       const lessons = state.lessons.map((l) =>
-        l.id === id ? { ...l, approved: true } : l
+        l.id === id ? { ...l, isApproved: true } : l
       );
       get().persistLessons(lessons);
       return { lessons };
@@ -111,13 +113,13 @@ export const useLessons = create<LessonStore>((set, get) => ({
     set((state) => {
       const lessons = state.lessons.map((l) => {
         if (l.id !== lessonId) return l;
-        const votes = { ...l.votes };
+        const voters = { ...l.voters };
         if (voteType) {
-          votes[userId] = voteType;
+          voters[userId] = voteType;
         } else {
-          delete votes[userId];
+          delete voters[userId];
         }
-        return { ...l, votes };
+        return { ...l, voters };
       });
       get().persistLessons(lessons);
       return { lessons };

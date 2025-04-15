@@ -2,15 +2,9 @@ import { create } from 'zustand';
 
 type VoteType = 'up' | 'down';
 
-type Lesson = {
-  id: string;
-  title: string;
-  anecdote: string;
-  approved: boolean;
-  votes: {
-    [userId: string]: VoteType;
-  };
-};
+import type { Lesson } from '../app/models/Lesson';
+
+
 
 type LessonStore = {
   lessons: Lesson[];
@@ -28,44 +22,67 @@ export const useLessons = create<LessonStore>((set, get) => ({
   lessons: [
     {
       id: '1',
-      title: 'You decide when you are disappointed.',
+      lesson: 'You decide when you are disappointed.',
       anecdote: 'Expectations are silent contracts. You can tear them up anytime.',
-      approved: true,
-      votes: {},
+      upvotes: 0,
+      downvotes: 0,
+      voters: {},
+      createdAt: new Date(),
+      userId: 'admin',
+      userName: 'Admin',
+      isUserSubmitted: false,
+      isApproved: true,
+      approvalThreshold: 10,
+      comments: [],
     },
     {
       id: '2',
-      title: 'You can’t fight every battle.',
+      lesson: 'You can’t fight every battle.',
       anecdote: 'Pick your wars. A wise general knows when to stay silent.',
-      approved: false,
-      votes: {},
+      upvotes: 0,
+      downvotes: 0,
+      voters: {},
+      createdAt: new Date(),
+      userId: 'admin',
+      userName: 'Admin',
+      isUserSubmitted: false,
+      isApproved: false,
+      approvalThreshold: 10,
+      comments: [],
     },
   ],
 
   getAllLessons: () => get().lessons,
 
   getApprovedLessons: () =>
-    get().lessons.filter((l) => l.approved),
+    get().lessons.filter((l) => l.isApproved),
 
   getUserSubmittedLessons: () =>
-    get().lessons.filter((l) => !l.approved),
+    get().lessons.filter((l) => !l.isApproved),
 
   addLesson: (newTruth, options = {}) => {
-    const lesson = {
+    const lesson: Lesson = {
       ...newTruth,
-      approved: options.approved ?? false,
-      votes: {},
+      upvotes: 0,
+      downvotes: 0,
+      voters: {},
+      createdAt: new Date(),
+      userId: newTruth.userId || 'admin',
+      userName: newTruth.userName || 'Admin',
+      isUserSubmitted: !!newTruth.isUserSubmitted,
+      isApproved: options.approved ?? false,
+      approvalThreshold: 10,
+      comments: [],
     };
-    console.log('💾 [Zustand] Adding lesson:', lesson);
     set((state) => ({
       lessons: [lesson, ...state.lessons],
     }));
   },
 
-  updateLessonText: (id, newTitle, markApproved = false) => {
+  updateLessonText: (id, newLesson, markApproved = false, newAnecdote?) => {
     set((state) => ({
       lessons: state.lessons.map((l) =>
-        l.id === id ? { ...l, title: newTitle, approved: markApproved || l.approved } : l
+        l.id === id ? { ...l, lesson: newLesson, isApproved: markApproved || l.isApproved, anecdote: newAnecdote || l.anecdote } : l
       ),
     }));
   },
@@ -79,7 +96,7 @@ export const useLessons = create<LessonStore>((set, get) => ({
   approveLesson: (id) => {
     set((state) => ({
       lessons: state.lessons.map((l) =>
-        l.id === id ? { ...l, approved: true } : l
+        l.id === id ? { ...l, isApproved: true } : l
       ),
     }));
   },
@@ -88,13 +105,13 @@ export const useLessons = create<LessonStore>((set, get) => ({
     set((state) => ({
       lessons: state.lessons.map((l) => {
         if (l.id !== lessonId) return l;
-        const updatedVotes = { ...l.votes };
+        const updatedVoters = { ...l.voters };
         if (voteType === null) {
-          delete updatedVotes[userId];
+          delete updatedVoters[userId];
         } else {
-          updatedVotes[userId] = voteType;
+          updatedVoters[userId] = voteType;
         }
-        return { ...l, votes: updatedVotes };
+        return { ...l, voters: updatedVoters };
       }),
     }));
   },

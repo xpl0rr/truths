@@ -16,7 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AddTruthModal from '@/components/AddTruthModal';
 import { useRouter } from 'expo-router';
 import FullScreenEditLessonMain from '../components/FullScreenEditLessonMain';
-import type { Lesson } from '@/store/lessonStore-persist';
+import type { Lesson } from '../models/Lesson';
 
 export default function AdminScreen() {
   // All hooks, handlers, and filtering logic above
@@ -36,7 +36,7 @@ export default function AdminScreen() {
   const [showAddModal, setShowAddModal] = useState(false);
 
   const allLessons = getAllLessons();
-  const unapprovedLessons = allLessons.filter((l) => !l.approved);
+  const unapprovedLessons = allLessons.filter((l) => !l.isApproved);
 
   const startEditing = (lessonObj: Lesson) => {
     setEditingLesson(lessonObj);
@@ -75,13 +75,13 @@ const handleCloseEdit = () => {
   const filtered =
     searchQuery.trim().length === 0
       ? allLessons.filter(
-          (l) => !l.approved && typeof l.title === 'string' && l.title.trim().length > 0
+          (l) => typeof l.lesson === 'string' && l.lesson.trim().length > 0
         )
       : allLessons.filter(
           (l) =>
-            typeof l.title === 'string' &&
-            l.title.trim().length > 0 &&
-            l.title.toLowerCase().includes(searchQuery.toLowerCase())
+            typeof l.lesson === 'string' &&
+            l.lesson.trim().length > 0 &&
+            l.lesson.toLowerCase().includes(searchQuery.toLowerCase())
         );
   const visibleLessons = filtered;
 
@@ -126,7 +126,7 @@ const handleCloseEdit = () => {
               onPress={() => startEditing(lesson)}
               activeOpacity={0.85}
             >
-              <Text style={styles.text}>{lesson.title}</Text>
+              <Text style={styles.text}>{lesson.lesson}</Text>
             </TouchableOpacity>
           ))
         )} 
