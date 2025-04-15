@@ -46,7 +46,6 @@ export const useLessons = create<LessonStore>((set, get) => ({
       lessons = lessons.filter((l: any) => typeof l.lesson === 'string' && l.lesson.trim().length > 0);
       set({ lessons, hydrated: true });
       console.debug('[hydrateLessons] lessons set to:', lessons);
-      await AsyncStorage.setItem(LESSONS_KEY, JSON.stringify(lessons));
     } else {
       set({ hydrated: true });
       console.debug('[hydrateLessons] no lessons found in storage.');
@@ -90,11 +89,11 @@ export const useLessons = create<LessonStore>((set, get) => ({
       const lessons = state.lessons.map((l) =>
         l.id === id
           ? {
-              ...l,
-              lesson: newLesson,
-              anecdote: newAnecdote !== undefined ? newAnecdote : l.anecdote,
-              isApproved: markApproved ? true : l.isApproved,
-            }
+            ...l,
+            lesson: newLesson,
+            anecdote: newAnecdote !== undefined ? newAnecdote : l.anecdote,
+            isApproved: markApproved ? true : l.isApproved,
+          }
           : l
       );
       get().persistLessons(lessons);

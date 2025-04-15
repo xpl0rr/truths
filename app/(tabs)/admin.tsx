@@ -43,7 +43,13 @@ export default function AdminScreen() {
   // Debug: show AsyncStorage contents in console
   DebugLessons();
   const hydrated = useHydrateLessons();
-  if (!hydrated) return null;
+  if (!hydrated) {
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Text>Loading...</Text>
+    </View>
+  );
+}
   // All hooks, handlers, and filtering logic above
 
   const {

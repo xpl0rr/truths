@@ -15,7 +15,13 @@ import FullScreenLesson from '@/components/FullScreenLesson';
 
 export default function CommunityScreen() {
     const hydrated = useHydrateLessons();
-    if (!hydrated) return null;
+    if (!hydrated) {
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Text>Loading...</Text>
+    </View>
+  );
+}
     const userId = 'user123';
     const userName = 'Jane Doe';
     const {
