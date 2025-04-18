@@ -6,9 +6,11 @@ type Props = {
   lesson: {
     id: string;
     lesson: string;
-    approved: boolean;
-    votes: {
-      [userId: string]: 'up' | 'down';
+    anecdote?: string;
+    upvotes: number;
+    downvotes: number;
+    voters: {
+      [userId: string]: 'up' | 'down' | null;
     };
   };
   userId: string;
@@ -19,12 +21,14 @@ type Props = {
 const LessonCard = ({ lesson, userId, onVote, onSelect }: Props) => {
   const [expanded, setExpanded] = useState(false);
 
-  const userVote = lesson.votes?.[userId] ?? null;
+  // Use voters, upvotes, downvotes from the canonical model
+  const userVote = lesson.voters?.[userId] ?? null;
   const isUpvoted = userVote === 'up';
   const isDownvoted = userVote === 'down';
 
-  const upvotes = Object.values(lesson.votes || {}).filter((v) => v === 'up').length;
-  const downvotes = Object.values(lesson.votes || {}).filter((v) => v === 'down').length;
+  // Use upvotes/downvotes from lesson, fallback to counting voters for safety
+  const upvotes = typeof lesson.upvotes === 'number' ? lesson.upvotes : Object.values(lesson.voters || {}).filter((v) => v === 'up').length;
+  const downvotes = typeof lesson.downvotes === 'number' ? lesson.downvotes : Object.values(lesson.voters || {}).filter((v) => v === 'down').length;
   const totalVotes = upvotes + downvotes;
   const approvalRate = totalVotes > 0 ? Math.round((upvotes / totalVotes) * 100) : 100;
 
@@ -34,7 +38,7 @@ const LessonCard = ({ lesson, userId, onVote, onSelect }: Props) => {
       style={styles.container}
       activeOpacity={0.8}
     >
-      <Text style={styles.lessonText}>{lesson.title}</Text>
+      <Text style={styles.lessonText}>{lesson.lesson}</Text>
 
       <View style={styles.metaRow}>
         <Text style={styles.percent}>{approvalRate}% ({upvotes}/{totalVotes || 1})</Text>

@@ -11,7 +11,7 @@ import {
   Alert,
 } from 'react-native';
 import textStyles from '../styles/textStyles';
-import { useLessons, useHydrateLessons } from '@/store/lessonStore-persist';
+import { useLessons } from '../../src/store/LessonStore';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AddTruthModal from '../components/AddTruthModal';
 import { useRouter } from 'expo-router';
@@ -42,21 +42,13 @@ function DebugLessons() {
 export default function AdminScreen() {
   // Debug: show AsyncStorage contents in console
   DebugLessons();
-  const hydrated = useHydrateLessons();
-  if (!hydrated) {
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>Loading...</Text>
-    </View>
-  );
-}
+
   // All hooks, handlers, and filtering logic above
 
   const {
     getAllLessons,
     approveLesson,
     updateLessonText,
-    deleteLesson,
     addLesson,
   } = useLessons();
 
@@ -67,7 +59,14 @@ export default function AdminScreen() {
   const [showAddModal, setShowAddModal] = useState(false);
 
   const allLessons = getAllLessons();
-  const unapprovedLessons = allLessons.filter((l) => !l.isApproved);
+  // Show only unapproved truths by default
+  const visibleLessons = searchQuery.trim().length === 0
+    ? allLessons.filter(
+        (l) => typeof l.lesson === 'string' && l.lesson.trim().length > 0 && !l.isApproved
+      )
+    : allLessons.filter(
+        (l) => typeof l.lesson === 'string' && l.lesson.trim().length > 0 && l.lesson.toLowerCase().includes(searchQuery.toLowerCase())
+      );
 
   const startEditing = (lessonObj: Lesson) => {
     setEditingLesson(lessonObj);
@@ -95,32 +94,43 @@ const handleCloseEdit = () => {
 
 
   const handleAddNew = (input: { lesson: string; anecdote: string }) => {
-  console.log('[Admin handleAddNew] received:', input);
+    console.log('[Admin handleAddNew] received:', input);
     const newId = Date.now().toString();
-    addLesson({ lesson: input.lesson, anecdote: input.anecdote, id: newId, isUserSubmitted: true }, { isApproved: true });
+    addLesson({
+      lesson: input.lesson,
+      anecdote: input.anecdote,
+      id: newId,
+      isUserSubmitted: true,
+      isApproved: true,
+      upvotes: 0,
+      downvotes: 0,
+      voters: {},
+      createdAt: new Date(),
+      userId: 'admin',
+      userName: 'Admin',
+      approvalThreshold: 10,
+      comments: [],
+    });
     notifySuccess('Truth added and promoted to main page');
     setShowAddModal(false);
     router.push({ pathname: '/', params: { scrollTo: newId } });
   };
 
+
   const filtered =
     searchQuery.trim().length === 0
-      ? allLessons.filter(
-          (l) => typeof l.lesson === 'string' && l.lesson.trim().length > 0
-        )
-      : allLessons.filter(
-          (l) =>
-            typeof l.lesson === 'string' &&
-            l.lesson.trim().length > 0 &&
-            l.lesson.toLowerCase().includes(searchQuery.toLowerCase())
+      ? visibleLessons
+      : visibleLessons.filter((l) =>
+          l.lesson.toLowerCase().includes(searchQuery.toLowerCase())
         );
-  const visibleLessons = filtered;
 
   // --- All rendering logic is now inside the function ---
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.lesson}>Admin</Text>
+        <View style={{alignItems: 'center'}}>
+  <Text style={textStyles.title}>Admin</Text>
+</View>
 
         <View style={{ position: 'relative', justifyContent: 'center' }}>
           <TextInput
@@ -142,24 +152,35 @@ const handleCloseEdit = () => {
         </View>
 
         <TouchableOpacity onPress={() => setShowAddModal(true)}>
-          <Text style={styles.addButton}>+ Add Your Truth</Text>
+          <Text style={textStyles.button}>+ Add Your Truth</Text>
         </TouchableOpacity>
 
         {filtered.length === 0 && searchQuery.length > 0 ? (
-          <Text style={styles.empty}>No matches found.</Text>
+          <Text style={textStyles.body}>No matches found.</Text>
         ) : filtered.length === 0 ? (
-          <Text style={styles.empty}>No unapproved truths.</Text>
+          <Text style={textStyles.body}>No truths yet.</Text>
         ) : (
-           visibleLessons.map((lesson) => (
-            <TouchableOpacity
-              key={lesson.id}
-              style={styles.card}
-              onPress={() => startEditing(lesson)}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.text}>{lesson.lesson}</Text>
-            </TouchableOpacity>
-          ))
+           filtered.map((lesson) => (
+  <View key={lesson.id} style={styles.card}>
+    <TouchableOpacity
+      onPress={() => startEditing(lesson)}
+      activeOpacity={0.85}
+    >
+      <Text style={textStyles.body}>{lesson.lesson}</Text>
+    </TouchableOpacity>
+    <View style={{ flexDirection: 'row', marginTop: 8, justifyContent: 'flex-end' }}>
+      {!lesson.isApproved && (
+        <TouchableOpacity
+          style={[styles.button, { backgroundColor: '#4caf50', marginRight: 8 }]}
+          onPress={() => approveLesson(lesson.id)}
+        >
+          <Text style={textStyles.button}>Approve</Text>
+        </TouchableOpacity>
+      )}
+
+    </View>
+  </View>
+))
         )} 
       </ScrollView>
 
@@ -188,6 +209,17 @@ const handleCloseEdit = () => {
 }
 
 const styles = StyleSheet.create({
+  button: {
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    marginLeft: 4,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '500',
+  },
   safe: { flex: 1, backgroundColor: '#fff' },
   container: { paddingHorizontal: 16, paddingBottom: 32 },
   lesson: {

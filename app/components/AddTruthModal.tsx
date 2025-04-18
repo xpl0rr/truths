@@ -46,7 +46,7 @@ export default function AddTruthModal({ visible, onClose, onSubmit }: AddTruthMo
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           >
             <View style={styles.modalContent}>
-              <Text style={[textStyles.title, styles.title]}>Add Your Truth</Text>
+              <Text style={textStyles.title}>Add a Truth</Text>
               <TextInput
                 style={[textStyles.title, styles.input]}
                 value={lesson}

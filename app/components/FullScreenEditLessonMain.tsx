@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, SafeAreaView } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import textStyles from '../styles/textStyles';
 import type { Lesson } from '@/store/lessonStore-persist';
 
@@ -13,6 +14,17 @@ interface Props {
 export default function FullScreenEditLessonMain({ visible, lesson, onSave, onClose }: Props) {
   const [lessonText, setLessonText] = useState(lesson.lesson || '');
   const [anecdote, setAnecdote] = useState(lesson.anecdote || '');
+  const insets = useSafeAreaInsets();
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
+
+  React.useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardDidShow', () => setKeyboardOpen(true));
+    const hideSub = Keyboard.addListener('keyboardDidHide', () => setKeyboardOpen(false));
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   return (
     <Modal
@@ -24,41 +36,44 @@ export default function FullScreenEditLessonMain({ visible, lesson, onSave, onCl
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={6}
+        keyboardVerticalOffset={0}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-          <View style={styles.fullScreenContainer}>
+          <SafeAreaView style={styles.fullScreenContainer}>
             <TextInput
-              style={[textStyles.title, styles.titleInput]}
+              style={[styles.titleInput, { minHeight: 44 }]}
               value={lessonText}
               onChangeText={setLessonText}
-              placeholder="Lesson"
+              placeholder="Lesson title"
               placeholderTextColor="#aaa"
-              returnKeyType="done"
-              blurOnSubmit={true}
+              autoFocus
+              returnKeyType="next"
+              multiline
+              numberOfLines={2}
+              textAlignVertical="top"
             />
             <TextInput
               style={[textStyles.body, styles.anecdoteInput]}
               value={anecdote}
               onChangeText={setAnecdote}
-              placeholder="Anecdote"
-              placeholderTextColor="#bbb"
+              placeholder="The anecdote is not optional"
+              placeholderTextColor="#aaa"
               multiline
               textAlignVertical="top"
               returnKeyType="done"
               blurOnSubmit={true}
             />
-            <View style={styles.buttonRowContainer}>
+            <View style={[styles.buttonRowContainer, { paddingBottom: keyboardOpen ? 0 : insets.bottom }]}> 
               <View style={styles.buttonRow}>
                 <TouchableOpacity style={styles.button} onPress={() => onSave(lessonText, anecdote)}>
-                  <Text style={textStyles.button}>Save</Text>
+                  <Text style={styles.saveButtonText}>Save</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={[styles.button, styles.closeButton]} onPress={onClose}>
-                  <Text style={textStyles.button}>Close</Text>
+                  <Text style={styles.buttonText}>Close</Text>
                 </TouchableOpacity>
               </View>
             </View>
-          </View>
+          </SafeAreaView>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
     </Modal>
@@ -70,7 +85,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     paddingHorizontal: 16,
-    paddingTop: 32,
+    paddingTop: 64, // Increased padding to avoid camera island
     paddingBottom: 0,
   },
   titleInput: {
@@ -93,32 +108,40 @@ const styles = StyleSheet.create({
     maxHeight: 300,
   },
   buttonRowContainer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 6,
     paddingHorizontal: 16,
+    paddingTop: 8,
     backgroundColor: 'transparent',
   },
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 24,
+    gap: 12,
   },
   button: {
     flex: 1,
+    height: 40,
     backgroundColor: '#222',
-    paddingVertical: 16,
-    marginHorizontal: 8,
-    borderRadius: 8,
+    borderRadius: 10,
     alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 0,
+    paddingHorizontal: 0,
+    elevation: 0,
+    shadowOpacity: 0,
   },
   closeButton: {
-    backgroundColor: '#bbb',
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#bbb',
   },
   buttonText: {
+    color: '#222',
+    fontSize: 16,
+    fontWeight: 'normal',
+  },
+  saveButtonText: {
     color: '#fff',
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: 'normal',
   },
 })

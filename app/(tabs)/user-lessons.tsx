@@ -8,32 +8,26 @@ import {
     TouchableOpacity,
 } from 'react-native';
 import textStyles from '../styles/textStyles';
-import LessonCard from '@/components/LessonCard';
-import { useLessons, useHydrateLessons } from '@/store/lessonStore-persist';
+import LessonCard from '../../components/LessonCard';
+import { useLessons } from '../../src/store/LessonStore';
 import AddTruthModal from '../components/AddTruthModal';
 import FullScreenLesson from '@/components/FullScreenLesson';
 
 export default function CommunityScreen() {
-    const hydrated = useHydrateLessons();
-    if (!hydrated) {
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>Loading...</Text>
-    </View>
-  );
-}
+
     const userId = 'user123';
     const userName = 'Jane Doe';
     const {
-        getUserSubmittedLessons,
-        addLesson,
-        voteLesson
+        getAllLessons,
+        voteLesson,
+        addLesson
     } = useLessons();
 
     const [selectedLesson, setSelectedLesson] = useState(null);
     const [showAddModal, setShowAddModal] = useState(false);
 
-    const unapprovedLessons = getUserSubmittedLessons();
+    // Filter for user-submitted lessons
+    const unapprovedLessons = getAllLessons().filter(l => l.isUserSubmitted);
 
     const handleVote = (
         lessonId: string,
@@ -52,9 +46,23 @@ export default function CommunityScreen() {
     };
 
     const handleAddNew = (input: { lesson: string; anecdote: string }) => {
-    console.log('[Community handleAddNew] received:', input);
+        console.log('[Community handleAddNew] received:', input);
         const newId = Date.now().toString();
-        addLesson({ ...input, id: newId, isUserSubmitted: true });
+        addLesson({
+            id: newId,
+            lesson: input.lesson,
+            anecdote: input.anecdote,
+            upvotes: 0,
+            downvotes: 0,
+            voters: {},
+            createdAt: new Date(),
+            userId,
+            userName,
+            isUserSubmitted: true,
+            isApproved: false,
+            approvalThreshold: 10,
+            comments: [],
+        });
         setShowAddModal(false);
     };
 
@@ -81,10 +89,12 @@ export default function CommunityScreen() {
 
     return (
         <SafeAreaView style={styles.container}>
-            <Text style={styles.lesson}>Community Truths</Text>
+            <View style={{alignItems: 'center'}}>
+  <Text style={textStyles.title}>Community Truths</Text>
+</View>
 
             <TouchableOpacity onPress={() => setShowAddModal(true)}>
-                <Text style={styles.addButton}>+ Add Your Truth</Text>
+                <Text style={textStyles.button}>+ Add Your Truth</Text>
             </TouchableOpacity>
 
             {unapprovedLessons.length > 0 ? (
@@ -96,7 +106,7 @@ export default function CommunityScreen() {
                 />
             ) : (
                 <View style={styles.empty}>
-                    <Text style={styles.emptyText}>No unapproved truths yet.</Text>
+                    <Text style={textStyles.body}>No unapproved truths yet.</Text>
                 </View>
             )}
 

@@ -11,27 +11,50 @@ import {
   Alert,
 } from 'react-native';
 import textStyles from '../styles/textStyles';
-import { useLessons, useHydrateLessons } from '@/store/lessonStore-persist';
+import { useLessons } from '../../src/store/LessonStore';
 import type { Lesson } from '../../src/models/Lesson';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import AddTruthModal from '@/components/AddTruthModal';
+import AddTruthModal from '../components/AddTruthModal';
 import { useRouter } from 'expo-router';
 import FullScreenEditLessonMain from '../components/FullScreenEditLessonMain';
+import LessonCard from '../../components/LessonCard';
 
 export default function TruthsScreen() {
-  const hydrated = useHydrateLessons();
-  const { getApprovedLessons, updateLessonText } = useLessons();
+  const { getApprovedLessons, voteLesson, addLesson } = useLessons();
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const userId = 'user123'; // Replace with actual user id logic if available
+  const userName = 'Jane Doe'; // Replace with actual user name logic if available
 
-  if (!hydrated) return null;
+  // Sort by ranking: upvotes - downvotes, descending
+  const approvedLessons = getApprovedLessons().slice().sort((a, b) => (b.upvotes - b.downvotes) - (a.upvotes - a.downvotes));
 
-  const approvedLessons = getApprovedLessons();
+  const handleVote = (lessonId: string, userId: string, voteType: 'up' | 'down' | null) => {
+    voteLesson(lessonId, userId, voteType);
+  };
 
-  const handleSave = (lesson: string, anecdote: string) => {
-    if (selectedLesson) {
-      updateLessonText(selectedLesson.id, lesson, selectedLesson.isApproved, anecdote);
-      setSelectedLesson(null);
-    }
+  const handleOpenLesson = (lesson: Lesson) => {
+    setSelectedLesson(lesson);
+  };
+
+  const handleAddNew = (input: { lesson: string; anecdote: string }) => {
+    const newId = Date.now().toString();
+    addLesson({
+      id: newId,
+      lesson: input.lesson,
+      anecdote: input.anecdote,
+      upvotes: 0,
+      downvotes: 0,
+      voters: {},
+      createdAt: new Date(),
+      userId,
+      userName,
+      isUserSubmitted: true,
+      isApproved: false,
+      approvalThreshold: 10,
+      comments: [],
+    });
+    setShowAddModal(false);
   };
 
   return (
@@ -40,30 +63,43 @@ export default function TruthsScreen() {
         <FullScreenEditLessonMain
           visible={!!selectedLesson}
           lesson={selectedLesson}
-          onSave={handleSave}
+          onSave={() => setSelectedLesson(null)}
           onClose={() => setSelectedLesson(null)}
         />
       ) : (
         <>
           <View style={{alignItems: 'center'}}>
-  <Text style={styles.title}>If Gramma Was Sun Tsu</Text>
-</View>
+            <Text style={textStyles.body}>It Is Known</Text>
+          </View>
+          <TouchableOpacity onPress={() => setShowAddModal(true)}>
+            <Text style={textStyles.button}>+ Add Your Truth</Text>
+          </TouchableOpacity>
           <ScrollView contentContainerStyle={styles.container}>
             {approvedLessons.length === 0 ? (
               <Text style={textStyles.body}>No truths yet.</Text>
             ) : (
               approvedLessons.map((lesson) => (
-                <TouchableOpacity
+                <LessonCard
                   key={lesson.id}
-                  style={styles.card}
-                  onPress={() => setSelectedLesson(lesson)}
-                  activeOpacity={0.85}
-                >
-                  <Text style={styles.text}>{lesson.lesson}</Text>
-                </TouchableOpacity>
+                  lesson={lesson}
+                  userId={userId}
+                  onVote={handleVote}
+                  onSelect={handleOpenLesson}
+                />
               ))
             )}
           </ScrollView>
+          <AddTruthModal
+            visible={showAddModal}
+            onClose={() => setShowAddModal(false)}
+            onSubmit={(input: { lesson: string; anecdote: string }) => {
+              if (!input.lesson || !input.lesson.trim()) {
+                alert('Lesson is required!');
+                return;
+              }
+              handleAddNew(input);
+            }}
+          />
         </>
       )}
     </SafeAreaView>
@@ -74,8 +110,8 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#fff' },
   container: { paddingHorizontal: 16, paddingBottom: 32 },
   title: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '400',
     textAlign: 'center',
     marginVertical: 16,
     color: '#111',
@@ -101,7 +137,7 @@ const styles = StyleSheet.create({
   addButton: {
     color: '#007aff',
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '400',
     marginBottom: 20,
     textAlign: 'center',
   },
@@ -130,7 +166,7 @@ const styles = StyleSheet.create({
   action: {
     color: '#007aff',
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: '400',
   },
   delete: {
     color: '#ff3b30',

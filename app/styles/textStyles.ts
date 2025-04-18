@@ -2,22 +2,23 @@ import { StyleSheet } from 'react-native';
 
 const textStyles = StyleSheet.create({
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: 'normal',
     color: '#000',
   },
   body: {
-    fontSize: 17,
+    fontSize: 16,
+    fontWeight: 'normal',
     color: '#000',
   },
   button: {
-    fontSize: 17,
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: 'normal',
     color: '#fff',
   },
   buttonDisabled: {
-    fontSize: 17,
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: 'normal',
     color: '#fff',
     opacity: 0.5,
   },
