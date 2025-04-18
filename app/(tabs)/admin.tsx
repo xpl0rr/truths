@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -43,8 +45,6 @@ export default function AdminScreen() {
   // Debug: show AsyncStorage contents in console
   DebugLessons();
 
-  // All hooks, handlers, and filtering logic above
-
   const {
     getAllLessons,
     approveLesson,
@@ -62,26 +62,26 @@ export default function AdminScreen() {
   // Show only unapproved truths by default
   const visibleLessons = searchQuery.trim().length === 0
     ? allLessons.filter(
-        (l) => typeof l.lesson === 'string' && l.lesson.trim().length > 0 && !l.isApproved
-      )
+      (l) => typeof l.lesson === 'string' && l.lesson.trim().length > 0 && !l.isApproved
+    )
     : allLessons.filter(
-        (l) => typeof l.lesson === 'string' && l.lesson.trim().length > 0 && l.lesson.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+      (l) => typeof l.lesson === 'string' && l.lesson.trim().length > 0 && l.lesson.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
   const startEditing = (lessonObj: Lesson) => {
     setEditingLesson(lessonObj);
   };
 
   const handleSaveEdit = (lesson: string, anecdote: string) => {
-  if (editingLesson) {
-    updateLessonText(editingLesson.id, lesson, editingLesson.isApproved, anecdote);
-    setEditingLesson(null);
-  }
-};
+    if (editingLesson) {
+      updateLessonText(editingLesson.id, lesson, editingLesson.isApproved, anecdote);
+      setEditingLesson(null);
+    }
+  };
 
-const handleCloseEdit = () => {
-  setEditingLesson(null);
-};
+  const handleCloseEdit = () => {
+    setEditingLesson(null);
+  };
 
   const notifySuccess = (message: string) => {
     if (Platform.OS === 'android') {
@@ -90,8 +90,6 @@ const handleCloseEdit = () => {
       Alert.alert(message);
     }
   };
-
-
 
   const handleAddNew = (input: { lesson: string; anecdote: string }) => {
     console.log('[Admin handleAddNew] received:', input);
@@ -116,74 +114,83 @@ const handleCloseEdit = () => {
     router.push({ pathname: '/', params: { scrollTo: newId } });
   };
 
-
   const filtered =
     searchQuery.trim().length === 0
       ? visibleLessons
       : visibleLessons.filter((l) =>
-          l.lesson.toLowerCase().includes(searchQuery.toLowerCase())
-        );
+        l.lesson.toLowerCase().includes(searchQuery.toLowerCase())
+      );
 
   // --- All rendering logic is now inside the function ---
   return (
-    <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <View style={{alignItems: 'center'}}>
-  <Text style={textStyles.title}>Admin</Text>
-</View>
+    <SafeAreaView style={[styles.safe, { flex: 1, position: 'relative' }]}> 
+      <View style={{ flex: 1, paddingBottom: 24 }}>
+        <ScrollView contentContainerStyle={styles.container}>
+          <View style={{ alignItems: 'center' }}>
+            <Text style={textStyles.title}>Admin</Text>
+          </View>
 
-        <View style={{ position: 'relative', justifyContent: 'center' }}>
-          <TextInput
-            style={[styles.search, { paddingRight: 36, height: 44 }]}
-            placeholder="Search truths..."
-            placeholderTextColor="#999"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity
-              onPress={() => setSearchQuery('')}
-              style={{ position: 'absolute', right: 12, top: 0, height: 44, justifyContent: 'center', alignItems: 'center' }}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              <Text style={{ fontSize: 22, color: '#999', lineHeight: 24 }}>×</Text>
-            </TouchableOpacity>
+          <View style={{ position: 'relative', justifyContent: 'center' }}>
+            <TextInput
+              style={[styles.search, { paddingRight: 36, height: 44 }]}
+              placeholder="Search truths..."
+              placeholderTextColor="#999"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity
+                onPress={() => setSearchQuery('')}
+                style={{ position: 'absolute', right: 12, top: 0, height: 44, justifyContent: 'center', alignItems: 'center' }}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Text style={{ fontSize: 22, color: '#999', lineHeight: 24 }}>×</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {filtered.length === 0 && searchQuery.length > 0 ? (
+            <Text style={textStyles.body}>No matches found.</Text>
+          ) : filtered.length === 0 ? (
+            <Text style={textStyles.body}>No truths yet.</Text>
+          ) : (
+            filtered.map((lesson) => (
+              <View key={lesson.id} style={styles.card}>
+                <TouchableOpacity
+                  onPress={() => startEditing(lesson)}
+                  activeOpacity={0.85}
+                >
+                  <Text style={{ fontSize: 16, fontWeight: '400', color: '#222' }}>{lesson.lesson}</Text>
+                </TouchableOpacity>
+                <View style={{ flexDirection: 'row', marginTop: 8, justifyContent: 'flex-end' }}>
+                  {!lesson.isApproved && (
+                    <TouchableOpacity
+                      style={[styles.button, { backgroundColor: '#4caf50', marginRight: 8 }]}
+                      onPress={() => approveLesson(lesson.id)}
+                    >
+                      <Text style={textStyles.button}>Approve</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+            ))
           )}
-        </View>
-
-        <TouchableOpacity onPress={() => setShowAddModal(true)}>
-          <Text style={textStyles.button}>+ Add Your Truth</Text>
-        </TouchableOpacity>
-
-        {filtered.length === 0 && searchQuery.length > 0 ? (
-          <Text style={textStyles.body}>No matches found.</Text>
-        ) : filtered.length === 0 ? (
-          <Text style={textStyles.body}>No truths yet.</Text>
-        ) : (
-           filtered.map((lesson) => (
-  <View key={lesson.id} style={styles.card}>
-    <TouchableOpacity
-      onPress={() => startEditing(lesson)}
-      activeOpacity={0.85}
-    >
-      <Text style={textStyles.body}>{lesson.lesson}</Text>
-    </TouchableOpacity>
-    <View style={{ flexDirection: 'row', marginTop: 8, justifyContent: 'flex-end' }}>
-      {!lesson.isApproved && (
-        <TouchableOpacity
-          style={[styles.button, { backgroundColor: '#4caf50', marginRight: 8 }]}
-          onPress={() => approveLesson(lesson.id)}
-        >
-          <Text style={textStyles.button}>Approve</Text>
-        </TouchableOpacity>
-      )}
-
-    </View>
-  </View>
-))
-        )} 
-      </ScrollView>
-
+        </ScrollView>
+      </View>
+      <TouchableOpacity
+        style={{
+          marginTop: 12,
+          marginBottom: 16,
+          alignSelf: 'center',
+          backgroundColor: '#eaeaea',
+          borderRadius: 8,
+          paddingVertical: 8,
+          paddingHorizontal: 18,
+        }}
+        onPress={() => setShowAddModal(true)}
+      >
+        <Text style={{ fontSize: 16, fontWeight: '400', color: '#222' }}>+ Add Your Truth</Text>
+      </TouchableOpacity>
       <AddTruthModal
         visible={showAddModal}
         onClose={() => setShowAddModal(false)}
@@ -235,55 +242,16 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     fontSize: 14,
     marginBottom: 20,
-    color: '#000',
-  },
-  input: {
-    backgroundColor: '#fff',
-    borderColor: '#ddd',
-    borderWidth: 1,
-    borderRadius: 6,
-    padding: 10,
-    fontSize: 14,
-    marginBottom: 8,
-    color: '#000',
-  },
-  addButton: {
-    color: '#007aff',
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  empty: {
-    textAlign: 'center',
-    fontSize: 14,
-    color: '#777',
-    marginTop: 40,
   },
   card: {
-    backgroundColor: '#f2f2f2',
-    padding: 14,
+    backgroundColor: '#f9f9f9',
     borderRadius: 8,
-    marginBottom: 16,
-  },
-  text: {
-    fontSize: 14,
-    marginBottom: 10,
-    color: '#333',
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    gap: 12,
-  },
-  action: {
-    color: '#007aff',
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  delete: {
-    color: '#ff3b30',
-    fontSize: 13,
-    fontWeight: '500',
+    padding: 14,
+    marginBottom: 14,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
   },
 });
