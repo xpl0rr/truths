@@ -26,8 +26,11 @@ export default function TruthsScreen() {
   const userId = 'user123'; // Replace with actual user id logic if available
   const userName = 'Jane Doe'; // Replace with actual user name logic if available
 
-  // Sort by ranking: upvotes - downvotes, descending
-  const approvedLessons = getApprovedLessons().slice().sort((a, b) => (b.upvotes - b.downvotes) - (a.upvotes - a.downvotes));
+  // Only show approved truths
+  const approvedLessons = getApprovedLessons()
+    .filter(l => typeof l.lesson === 'string' && l.lesson.trim().length > 0 && l.isApproved === true)
+    .slice()
+    .sort((a, b) => (b.upvotes - b.downvotes) - (a.upvotes - a.downvotes));
 
   const handleVote = (lessonId: string, userId: string, voteType: 'up' | 'down' | null) => {
     voteLesson(lessonId, userId, voteType);
