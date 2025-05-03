@@ -27,7 +27,7 @@ export default function CommunityScreen() {
     const [showAddModal, setShowAddModal] = useState(false);
 
     // Filter for user-submitted lessons
-    const unapprovedLessons = getAllLessons().filter(l => l.isUserSubmitted);
+    const unapprovedLessons = getAllLessons().filter(l => l.isUserSubmitted && !l.isApproved);
 
     const handleVote = (
         lessonId: string,

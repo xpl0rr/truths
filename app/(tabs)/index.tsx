@@ -16,7 +16,7 @@ import type { Lesson } from '../../src/models/Lesson';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AddTruthModal from '../components/AddTruthModal';
 import { useRouter } from 'expo-router';
-import FullScreenEditLessonMain from '../components/FullScreenEditLessonMain';
+import FullScreenLesson from '../../components/FullScreenLesson';
 import LessonCard from '../../components/LessonCard';
 
 export default function TruthsScreen() {
@@ -63,11 +63,12 @@ export default function TruthsScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       {selectedLesson ? (
-        <FullScreenEditLessonMain
-          visible={!!selectedLesson}
+        <FullScreenLesson
           lesson={selectedLesson}
-          onSave={() => setSelectedLesson(null)}
           onClose={() => setSelectedLesson(null)}
+          userId={userId}
+          userName={userName}
+          isAdmin={false}
         />
       ) : (
         <>
