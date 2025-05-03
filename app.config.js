@@ -12,7 +12,8 @@ module.exports = {
         icon: './assets/icon.png',
         scheme: 'truths',
         ios: {
-            supportsTablet: true
+            supportsTablet: true,
+            "bundleIdentifier": "com.xplorr.truths"
         },
         extra: {
             eas: {
