@@ -13,7 +13,38 @@ module.exports = {
         scheme: 'truths',
         ios: {
             supportsTablet: true,
-            "bundleIdentifier": "com.xplorr.truths"
+            bundleIdentifier: 'com.xplorr.truths',
+            infoPlist: {
+                ITSAppUsesNonExemptEncryption: false,
+            },
+        },
+        android: {
+            package: 'com.xplorr.truths',
+            adaptiveIcon: {
+                foregroundImage: './assets/adaptive-icon.png',
+                backgroundColor: '#ffffff',
+            },
+        },
+        web: {
+            favicon: './assets/favicon.png',
+        },
+        plugins: [
+            'expo-router',
+            [
+                'expo-splash-screen',
+                {
+                    image: './assets/splash-icon.png',
+                    imageWidth: 200,
+                    resizeMode: 'contain',
+                    backgroundColor: '#ffffff',
+                },
+            ],
+        ],
+        experiments: {
+            typedRoutes: true,
+        },
+        updates: {
+            url: 'https://u.expo.dev/4137856e-1f8e-436a-8b2f-3e0fb7f94b4a',
         },
         extra: {
             eas: {
