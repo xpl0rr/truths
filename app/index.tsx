@@ -1,9 +1,9 @@
-import { View, Text } from 'react-native';
+// app/index.tsx
+import { Redirect } from 'expo-router';
 
 export default function Index() {
-    return (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <Text>Welcome to Truths</Text>
-        </View>
-    );
+    //  ⬇︎ point to the file that should open first
+    //     (tabs)/index.tsx   →  href="/(tabs)/index"
+    //     (tabs)/home.tsx    →  href="/(tabs)/home"
+    return <Redirect href="/index" />;
 }
