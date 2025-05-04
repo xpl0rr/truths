@@ -9,7 +9,7 @@ module.exports = {
         orientation: 'portrait',
         userInterfaceStyle: 'light',
         runtimeVersion: '1.0.0',
-        icon: './assets/icon.png',
+        icon: './assets/images/icon.png',
         scheme: 'truths',
         ios: {
             supportsTablet: true,
@@ -21,24 +21,20 @@ module.exports = {
         android: {
             package: 'com.xplorr.truths',
             adaptiveIcon: {
-                foregroundImage: './assets/adaptive-icon.png',
+                foregroundImage: './assets/images/adaptive-icon.png',
                 backgroundColor: '#ffffff',
             },
         },
         web: {
-            favicon: './assets/favicon.png',
+            favicon: './assets/images/favicon.png',
+        },
+        splash: {
+            image: './assets/images/splash-icon.png',
+            resizeMode: 'contain',
+            backgroundColor: '#ffffff',
         },
         plugins: [
             'expo-router',
-            [
-                'expo-splash-screen',
-                {
-                    image: './assets/images/splash-icon.png',
-                    imageWidth: 200,
-                    resizeMode: 'contain',
-                    backgroundColor: '#ffffff',
-                },
-            ],
             'expo-dev-client',
         ],
         experiments: {
