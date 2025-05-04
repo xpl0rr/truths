@@ -11,7 +11,7 @@ import {
   Alert,
 } from 'react-native';
 import textStyles from '../styles/textStyles';
-import { useLessons } from '../../src/store/LessonStore';
+import { useLessons } from '@/store/lessonStore-persist';
 import type { Lesson } from '../../src/models/Lesson';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AddTruthModal from '../components/AddTruthModal';
