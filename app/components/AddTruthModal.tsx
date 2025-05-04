@@ -1,140 +1,116 @@
-import React, { useState } from 'react';
-import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  Modal,
+  SafeAreaView,
+  View,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import textStyles from '../styles/textStyles';
 
 interface AddTruthModalProps {
   visible: boolean;
   onClose: () => void;
-  onSubmit?: (input: { lesson: string; anecdote: string }) => void; // Correct type!
+  onSubmit?: (input: { lesson: string; anecdote: string }) => void;
 }
 
 export default function AddTruthModal({ visible, onClose, onSubmit }: AddTruthModalProps) {
-  const [lesson, setLesson] = useState(''); // already correct
+  const [lesson, setLesson] = useState('');
   const [anecdote, setAnecdote] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!visible) {
+      setLesson('');
+      setAnecdote('');
+    }
+  }, [visible]);
 
   const handleSave = () => {
-    console.log('[AddTruthModal handleSave] submitting:', { lesson, anecdote });
     if (!lesson.trim()) return;
-    if (onSubmit) onSubmit({ lesson: lesson.trim(), anecdote: anecdote.trim() });
-    setLesson('');
-    setAnecdote('');
+    onSubmit?.({ lesson: lesson.trim(), anecdote: anecdote.trim() });
     onClose();
   };
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent={true}
-      onRequestClose={onClose}
-    >
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <View style={styles.overlay}>
-          <KeyboardAvoidingView
-            style={styles.container}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          >
-            <View style={styles.modalContent}>
-              <Text style={textStyles.title}>Add a Truth</Text>
+    <Modal visible={visible} animationType="slide" presentationStyle="fullScreen">
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <SafeAreaView style={styles.container}>
+          <View style={styles.inputs}>
+            <TextInput
+              style={styles.titleInput}
+              value={lesson}
+              onChangeText={setLesson}
+              placeholder="Truth title (required)"
+              placeholderTextColor="#aaa"
+              multiline
+              numberOfLines={2}
+            />
+            <ScrollView style={styles.anecdoteContainer}>
               <TextInput
-                style={[textStyles.title, styles.input]}
-                value={lesson}
-                onChangeText={setLesson}
-                placeholder="Truth (required)"
-                placeholderTextColor="#aaa"
-                returnKeyType="done"
-                blurOnSubmit={true}
-              />
-              <TextInput
-                style={[textStyles.body, styles.input, styles.anecdoteInput]}
+                style={styles.anecdoteInput}
                 value={anecdote}
                 onChangeText={setAnecdote}
                 placeholder="Anecdote (optional)"
-                placeholderTextColor="#bbb"
+                placeholderTextColor="#aaa"
                 multiline
                 textAlignVertical="top"
-                returnKeyType="done"
-                blurOnSubmit={true}
               />
-              <View style={styles.buttonRow}>
-                <TouchableOpacity
-                  style={[styles.button, !lesson.trim() && styles.buttonDisabled]}
-                  onPress={handleSave}
-                  disabled={!lesson.trim() || submitting}
-                >
-                  <Text style={textStyles.button}>Save</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.button, styles.closeButton]} onPress={onClose}>
-                  <Text style={textStyles.button}>Cancel</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </KeyboardAvoidingView>
-        </View>
-      </TouchableWithoutFeedback>
+            </ScrollView>
+          </View>
+          <View style={styles.buttonRow}>
+            <TouchableOpacity onPress={onClose}>
+              <Ionicons name="close-circle-outline" size={36} color="#777" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleSave} disabled={!lesson.trim()}>
+              <Ionicons
+                name="checkmark-circle-outline"
+                size={36}
+                color={lesson.trim() ? '#007aff' : '#ccc'}
+              />
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.25)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  container: {
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-  },
-  modalContent: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 24,
-    width: '90%',
-    maxWidth: 400,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  title: {
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  input: {
+  container: { flex: 1, backgroundColor: '#fff' },
+  inputs: { flex: 1, padding: 16 },
+  titleInput: {
+    height: 64,
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 8,
     padding: 12,
     marginBottom: 12,
-    fontSize: 16,
+    fontSize: 18,
     backgroundColor: '#fafafa',
   },
+  anecdoteContainer: { flex: 1 },
   anecdoteInput: {
-    minHeight: 60,
+    flex: 1,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 12,
+    backgroundColor: '#fafafa',
   },
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 16,
-  },
-  button: {
-    flex: 1,
-    backgroundColor: '#007aff',
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginHorizontal: 4,
-  },
-  buttonDisabled: {
-    backgroundColor: '#aaa',
-  },
-  closeButton: {
-    backgroundColor: '#eee',
+    padding: 16,
+    borderTopWidth: 1,
+    borderColor: '#eee',
   },
 });
