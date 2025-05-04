@@ -1,4 +1,4 @@
-package com.truths
+package com.xplorr.truths
 
 import android.os.Build
 import android.os.Bundle
