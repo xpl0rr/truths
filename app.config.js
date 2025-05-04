@@ -1,4 +1,8 @@
-// app.config.js
+// Register Babel to strip Flow types in React Native modules during config evaluation
+require('@babel/register')({
+  only: [/node_modules[\\/]react-native[\\/]/],
+  presets: ['@babel/preset-flow'],
+});
 
 module.exports = {
   expo: {
