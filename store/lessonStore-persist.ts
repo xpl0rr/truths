@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { MMKV } from 'react-native-mmkv';
+import { MMKV } from 'expo-mmkv';
 import { useEffect } from 'react';
 
 // Use MMKV for faster, more reliable on-device persistence
