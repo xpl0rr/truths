@@ -6,6 +6,11 @@ export default ({ config }) => ({
   version: '1.0.0',
   orientation: 'portrait',
   scheme: 'truths',
+  extra: {
+    eas: {
+      projectId: '4137856e-1f8e-436a-8b2f-3e0fb7f94b4a',
+    },
+  },
 
   /** ───── iOS ───── */
   ios: {
