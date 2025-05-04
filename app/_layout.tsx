@@ -10,9 +10,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { useHydrateLessons } from '@/store/lessonStore-persist';
 
 // ─────────────────────────────────────────────────────────
-// Prevent the native splash screen from hiding until fonts
-// and other async assets are loaded.
-SplashScreen.preventAutoHideAsync();
+// Remove manual splash control; let splash hide when fonts load
 // ─────────────────────────────────────────────────────────
 
 export default function RootLayout() {
@@ -27,15 +25,15 @@ export default function RootLayout() {
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
-  /* 3️⃣  Hide the splash screen as soon as all assets are ready */
+  /* 3️⃣  Hide the splash screen once fonts load */
   useEffect(() => {
-    if (fontsLoaded && hydrated) {
+    if (fontsLoaded) {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded, hydrated]);
+  }, [fontsLoaded]);
 
-  /* 4️⃣  While assets are loading, keep the splash screen visible */
-  if (!fontsLoaded || !hydrated) {
+  /* While fonts are loading, keep splash visible */
+  if (!fontsLoaded) {
     return null;
   }
 
