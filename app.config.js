@@ -1,8 +1,26 @@
-// Register Babel to strip Flow types in React Native modules during config evaluation
-require('@babel/register')({
-  only: [/node_modules[\\/]react-native[\\/]/],
-  presets: ['@babel/preset-flow'],
-});
+// app.config.js
+export default ({ config }) => ({
+  /** ───── basic app info ───── */
+  name: 'truths',
+  slug: 'truths',
+  version: '1.0.0',
+  orientation: 'portrait',
+  scheme: 'truths',
 
-// app.config.js – proxy to static JSON config to avoid dynamic module loading
-module.exports = require('./app.json');
+  /** ───── iOS ───── */
+  ios: {
+    bundleIdentifier: 'com.xplorr.truths',
+    supportsTablet: true
+  },
+
+  /** ───── Android ───── */
+  android: {
+    package: 'com.xplorr.truths'
+  },
+
+  /** ───── extra Expo fields you already had ───── */
+  owner: 'xplorr',
+  runtimeVersion: '1.0.0',
+  userInterfaceStyle: 'light',
+  icon: './assets/icon.png'
+});
