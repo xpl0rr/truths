@@ -19,8 +19,11 @@ export default function RootLayout() {
   /* 5️⃣  Root navigation tree */
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      {/* Automatically include all routes */}
-      <Stack screenOptions={{ headerShown: false }} />
+      {/* Primary navigator: tabs group */}
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="+not-found" />
+      </Stack>
 
       {/* System-status-bar style (light vs dark-content) */}
       <StatusBar style="auto" />
