@@ -1,9 +1,8 @@
 import { create } from 'zustand';
-import { MMKV } from 'expo-mmkv';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect } from 'react';
 
-// Use MMKV for faster, more reliable on-device persistence
-const storage = new MMKV();
+// Using AsyncStorage for persistence
 
 // --- Types ---
 type VoteType = 'up' | 'down';
@@ -73,7 +72,7 @@ export const useLessons = create<LessonStore>((set, get) => ({
 
   hydrateLessons: async () => {
     console.debug('[hydrateLessons] called');
-    const raw = storage.getString(LESSONS_KEY);
+    const raw = await AsyncStorage.getItem(LESSONS_KEY);
     if (raw) {
       console.debug('[hydrateLessons] loaded from storage:', raw);
       let lessons = JSON.parse(raw);
@@ -85,14 +84,14 @@ export const useLessons = create<LessonStore>((set, get) => ({
       // Seed default lessons on first run
       set({ lessons: DEFAULT_LESSONS, hydrated: true });
       // Persist seeded defaults
-      storage.set(LESSONS_KEY, JSON.stringify(DEFAULT_LESSONS));
+      await AsyncStorage.setItem(LESSONS_KEY, JSON.stringify(DEFAULT_LESSONS));
       console.debug('[hydrateLessons] seeded default lessons:', DEFAULT_LESSONS);
     }
   },
 
   persistLessons: async (lessons: Lesson[]) => {
-    console.debug('[persistLessons] saving to MMKV:', lessons);
-    storage.set(LESSONS_KEY, JSON.stringify(lessons));
+    console.debug('[persistLessons] saving to AsyncStorage:', lessons);
+    await AsyncStorage.setItem(LESSONS_KEY, JSON.stringify(lessons));
   },
 
   addLesson: (newTruth, options = {}) => {
