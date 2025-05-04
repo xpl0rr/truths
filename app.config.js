@@ -1,6 +1,8 @@
 // app.config.js
 
-module.exports = {
+const { withDevClient } = require('expo-dev-client');
+
+module.exports = withDevClient({
     expo: {
         name: 'truths',
         slug: 'truths',
@@ -49,4 +51,4 @@ module.exports = {
             }
         }
     }
-};
+});
