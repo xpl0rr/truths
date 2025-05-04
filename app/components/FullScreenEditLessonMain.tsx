@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, SafeAreaView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import textStyles from '../styles/textStyles';
-import type { Lesson } from '@/store/lessonStore-persist';
+import type { Lesson } from '../../src/models/Lesson';
 
 interface Props {
   visible: boolean;
