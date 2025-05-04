@@ -1,5 +1,5 @@
 // app.config.js
-const { withDevClient } = require('expo-dev-client');
+const { withDevClient } = require('expo-dev-client/plugin');
 
 module.exports = withDevClient({
   expo: {
