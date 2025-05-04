@@ -6,6 +6,7 @@ import {
     View,
     Text,
     TouchableOpacity,
+    Alert,
 } from 'react-native';
 import textStyles from '../styles/textStyles';
 import LessonCard from '../../components/LessonCard';
@@ -63,6 +64,7 @@ export default function CommunityScreen() {
             approvalThreshold: 10,
             comments: [],
         });
+        Alert.alert('Sent for approval');
         setShowAddModal(false);
     };
 
