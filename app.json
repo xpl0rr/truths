@@ -29,7 +29,8 @@
       "backgroundColor": "#ffffff"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      "expo-mmkv/plugin"
     ],
     "experiments": {
       "typedRoutes": true
