@@ -90,7 +90,7 @@ export default function CommunityScreen() {
     return (
         <SafeAreaView style={styles.container}>
             <View style={{alignItems: 'center'}}>
-  <Text style={textStyles.title}>Community Truths</Text>
+  <Text style={textStyles.title}>Community</Text>
 </View>
 
             <TouchableOpacity onPress={() => setShowAddModal(true)}>
