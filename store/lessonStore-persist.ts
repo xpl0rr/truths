@@ -110,7 +110,8 @@ export const useLessons = create<LessonStore>((set, get) => ({
       userId: newTruth.userId || 'admin',
       userName: newTruth.userName || 'Admin',
       isUserSubmitted: !!newTruth.isUserSubmitted,
-      isApproved: options.isApproved ?? false,
+      // Respect explicit approval flag from options or newTruth
+      isApproved: options.isApproved !== undefined ? options.isApproved : (newTruth.isApproved ?? false),
       approvalThreshold: 10,
       comments: [],
     };
