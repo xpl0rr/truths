@@ -10,12 +10,12 @@ import {
   Platform,
   Alert,
 } from 'react-native';
-import textStyles from '../../styles/textStyles';
+import textStyles from '../styles/textStyles';
 import { useLessons } from '../../store/lessonStore-persist';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import AddTruthModal from '../../components/AddTruthModal';
+import AddTruthModal from '../components/AddTruthModal';
 import { useRouter } from 'expo-router';
-import FullScreenEditLessonMain from '../../components/FullScreenEditLessonMain';
+import FullScreenEditLessonMain from '../components/FullScreenEditLessonMain';
 import type { Lesson } from '../../src/models/Lesson';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 

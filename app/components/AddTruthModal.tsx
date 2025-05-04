@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import textStyles from '../styles/textStyles';
-import { useLessons } from '@/store/lessonStore-persist';
 
 interface AddTruthModalProps {
   visible: boolean;
@@ -13,22 +12,13 @@ export default function AddTruthModal({ visible, onClose, onSubmit }: AddTruthMo
   const [lesson, setLesson] = useState(''); // already correct
   const [anecdote, setAnecdote] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const { addLesson } = useLessons();
 
-  const handleSave = async () => {
+  const handleSave = () => {
     console.log('[AddTruthModal handleSave] submitting:', { lesson, anecdote });
     if (!lesson.trim()) return;
-    setSubmitting(true);
-    addLesson({
-      id: Date.now().toString(),
-      lesson: lesson.trim(),
-      anecdote: anecdote.trim(),
-      isUserSubmitted: true,
-    });
+    if (onSubmit) onSubmit({ lesson: lesson.trim(), anecdote: anecdote.trim() });
     setLesson('');
     setAnecdote('');
-    setSubmitting(false);
-    if (onSubmit) onSubmit({ lesson: lesson.trim(), anecdote: anecdote.trim() });
     onClose();
   };
 
