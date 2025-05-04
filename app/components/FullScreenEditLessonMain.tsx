@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard, SafeAreaView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import textStyles from '../styles/textStyles';
@@ -14,6 +14,11 @@ interface Props {
 export default function FullScreenEditLessonMain({ visible, lesson, onSave, onClose }: Props) {
   const [lessonText, setLessonText] = useState(lesson.lesson || '');
   const [anecdote, setAnecdote] = useState(lesson.anecdote || '');
+  // Sync local state when the lesson prop changes
+  useEffect(() => {
+    setLessonText(lesson.lesson || '');
+    setAnecdote(lesson.anecdote || '');
+  }, [lesson]);
   const insets = useSafeAreaInsets();
   const [keyboardOpen, setKeyboardOpen] = useState(false);
 
