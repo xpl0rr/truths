@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -12,12 +10,12 @@ import {
   Platform,
   Alert,
 } from 'react-native';
-import textStyles from '../styles/textStyles';
-import { useLessons } from '../../src/store/LessonStore';
+import textStyles from '../../styles/textStyles';
+import { useLessons } from '../../store/lessonStore-persist';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import AddTruthModal from '../components/AddTruthModal';
+import AddTruthModal from '../../components/AddTruthModal';
 import { useRouter } from 'expo-router';
-import FullScreenEditLessonMain from '../components/FullScreenEditLessonMain';
+import FullScreenEditLessonMain from '../../components/FullScreenEditLessonMain';
 import type { Lesson } from '../../src/models/Lesson';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -111,7 +109,7 @@ export default function AdminScreen() {
     });
     notifySuccess('Truth added and promoted to main page');
     setShowAddModal(false);
-    router.push({ pathname: '/', params: { scrollTo: newId } });
+    router.push('/');
   };
 
   const filtered =
