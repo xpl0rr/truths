@@ -35,7 +35,7 @@ module.exports = {
         },
         plugins: [
             'expo-router',
-            'expo-dev-client',
+            'expo-dev-client/plugin',
         ],
         experiments: {
             typedRoutes: true,
