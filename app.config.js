@@ -1,7 +1,6 @@
 // app.config.js
-const { withDevClient } = require('expo-dev-client/plugin');
 
-module.exports = withDevClient({
+module.exports = {
   expo: {
     name: 'truths',
     slug: 'truths',
@@ -28,4 +27,4 @@ module.exports = withDevClient({
     updates: { url: 'https://u.expo.dev/4137856e-1f8e-436a-8b2f-3e0fb7f94b4a' },
     extra: { eas: { projectId: '4137856e-1f8e-436a-8b2f-3e0fb7f94b4a' } },
   },
-});
+};
