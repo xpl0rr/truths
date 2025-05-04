@@ -18,6 +18,7 @@ import { useRouter } from 'expo-router';
 import FullScreenEditLessonMain from '../components/FullScreenEditLessonMain';
 import type { Lesson } from '../../src/models/Lesson';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
 
 function DebugLessons() {
   useEffect(() => {
@@ -48,6 +49,7 @@ export default function AdminScreen() {
     approveLesson,
     updateLessonText,
     addLesson,
+    deleteLesson,
   } = useLessons();
 
   const router = useRouter();
@@ -154,21 +156,19 @@ export default function AdminScreen() {
           ) : (
             filtered.map((lesson) => (
               <View key={lesson.id} style={styles.card}>
-                <TouchableOpacity
-                  onPress={() => startEditing(lesson)}
-                  activeOpacity={0.85}
-                >
-                  <Text style={{ fontSize: 16, fontWeight: '400', color: '#222' }}>{lesson.lesson}</Text>
-                </TouchableOpacity>
-                <View style={{ flexDirection: 'row', marginTop: 8, justifyContent: 'flex-end' }}>
+                <Text style={{ fontSize: 16, fontWeight: '400', color: '#222' }}>{lesson.lesson}</Text>
+                <View style={{ flexDirection: 'row', marginTop: 8, justifyContent: 'flex-end', alignItems: 'center' }}>
                   {!lesson.isApproved && (
-                    <TouchableOpacity
-                      style={[styles.button, { backgroundColor: '#4caf50', marginRight: 8 }]}
-                      onPress={() => approveLesson(lesson.id)}
-                    >
-                      <Text style={textStyles.button}>Approve</Text>
+                    <TouchableOpacity onPress={() => approveLesson(lesson.id)} style={{ marginRight: 16 }}>
+                      <Ionicons name="checkmark-circle-outline" size={24} color="#4caf50" />
                     </TouchableOpacity>
                   )}
+                  <TouchableOpacity onPress={() => startEditing(lesson)} style={{ marginRight: 16 }}>
+                    <Ionicons name="pencil-outline" size={24} color="#007aff" />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => deleteLesson(lesson.id)}>
+                    <Ionicons name="trash-outline" size={24} color="#ff3b30" />
+                  </TouchableOpacity>
                 </View>
               </View>
             ))
