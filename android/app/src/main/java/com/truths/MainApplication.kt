@@ -1,4 +1,4 @@
-package com.xplorr.truths
+package com.truths
 
 import android.app.Application
 import android.content.res.Configuration

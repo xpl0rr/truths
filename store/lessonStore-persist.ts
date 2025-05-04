@@ -1,13 +1,48 @@
 import { create } from 'zustand';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MMKV } from 'expo-mmkv';
 import { useEffect } from 'react';
+
+// Use MMKV for faster, more reliable on-device persistence
+const storage = new MMKV();
 
 // --- Types ---
 type VoteType = 'up' | 'down';
 
-import type { Lesson } from '../app/models/Lesson';
+import type { Lesson } from '../src/models/Lesson';
 
-
+// Seeded default truths for first launch
+const DEFAULT_LESSONS: Lesson[] = [
+  {
+    id: '1',
+    lesson: 'You decide when you are disappointed.',
+    anecdote: 'Expectations are silent contracts. You can tear them up anytime.',
+    upvotes: 0,
+    downvotes: 0,
+    voters: {},
+    createdAt: new Date(),
+    userId: 'admin',
+    userName: 'Admin',
+    isUserSubmitted: false,
+    isApproved: true,
+    approvalThreshold: 10,
+    comments: [],
+  },
+  {
+    id: '2',
+    lesson: 'You can’t fight every battle.',
+    anecdote: 'Pick your wars. A wise general knows when to stay silent.',
+    upvotes: 0,
+    downvotes: 0,
+    voters: {},
+    createdAt: new Date(),
+    userId: 'admin',
+    userName: 'Admin',
+    isUserSubmitted: false,
+    isApproved: false,
+    approvalThreshold: 10,
+    comments: [],
+  },
+];
 
 type LessonStore = {
   lessons: Lesson[];
@@ -38,23 +73,26 @@ export const useLessons = create<LessonStore>((set, get) => ({
 
   hydrateLessons: async () => {
     console.debug('[hydrateLessons] called');
-    const raw = await AsyncStorage.getItem(LESSONS_KEY);
+    const raw = storage.getString(LESSONS_KEY);
     if (raw) {
-      console.debug('[hydrateLessons] loaded from AsyncStorage:', raw);
+      console.debug('[hydrateLessons] loaded from storage:', raw);
       let lessons = JSON.parse(raw);
       // Remove or fix malformed lessons
       lessons = lessons.filter((l: any) => typeof l.lesson === 'string' && l.lesson.trim().length > 0);
       set({ lessons, hydrated: true });
       console.debug('[hydrateLessons] lessons set to:', lessons);
     } else {
-      set({ hydrated: true });
-      console.debug('[hydrateLessons] no lessons found in storage.');
+      // Seed default lessons on first run
+      set({ lessons: DEFAULT_LESSONS, hydrated: true });
+      // Persist seeded defaults
+      storage.set(LESSONS_KEY, JSON.stringify(DEFAULT_LESSONS));
+      console.debug('[hydrateLessons] seeded default lessons:', DEFAULT_LESSONS);
     }
   },
 
   persistLessons: async (lessons: Lesson[]) => {
-    console.debug('[persistLessons] saving to AsyncStorage:', lessons);
-    await AsyncStorage.setItem(LESSONS_KEY, JSON.stringify(lessons));
+    console.debug('[persistLessons] saving to MMKV:', lessons);
+    storage.set(LESSONS_KEY, JSON.stringify(lessons));
   },
 
   addLesson: (newTruth, options = {}) => {

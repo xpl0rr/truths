@@ -7,6 +7,7 @@ import { useFonts } from 'expo-font';
 import { useEffect } from 'react';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { useHydrateLessons } from '@/store/lessonStore-persist';
 
 // ─────────────────────────────────────────────────────────
 // Prevent the native splash screen from hiding until fonts
@@ -18,6 +19,9 @@ export default function RootLayout() {
   /* 1️⃣  Detect the device colour scheme (light / dark) */
   const colorScheme = useColorScheme();
 
+  /* 1️⃣·5️⃣  Load persisted lessons before render */
+  const hydrated = useHydrateLessons();
+
   /* 2️⃣  Load any custom fonts your app needs */
   const [fontsLoaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
@@ -25,13 +29,13 @@ export default function RootLayout() {
 
   /* 3️⃣  Hide the splash screen as soon as all assets are ready */
   useEffect(() => {
-    if (fontsLoaded) {
+    if (fontsLoaded && hydrated) {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded]);
+  }, [fontsLoaded, hydrated]);
 
   /* 4️⃣  While assets are loading, keep the splash screen visible */
-  if (!fontsLoaded) {
+  if (!fontsLoaded || !hydrated) {
     return null;
   }
 

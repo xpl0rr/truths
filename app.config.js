@@ -33,12 +33,13 @@ module.exports = {
             [
                 'expo-splash-screen',
                 {
-                    image: './assets/splash-icon.png',
+                    image: './assets/images/splash-icon.png',
                     imageWidth: 200,
                     resizeMode: 'contain',
                     backgroundColor: '#ffffff',
                 },
             ],
+            'expo-dev-client',
         ],
         experiments: {
             typedRoutes: true,
