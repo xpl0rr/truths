@@ -1,41 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Lesson } from '../models/Lesson';
+import { sampleLessons } from '../models/Lesson';
 
 const LESSONS_KEY = 'truths_lessons';
 
-const initialLessons: Lesson[] = [
-  {
-    id: '1',
-    lesson: 'You decide when you are disappointed.',
-    anecdote: 'Expectations are silent contracts. You can tear them up anytime.',
-    upvotes: 0,
-    downvotes: 0,
-    voters: {},
-    createdAt: new Date(),
-    userId: 'admin',
-    userName: 'Admin',
-    isUserSubmitted: false,
-    isApproved: true,
-    approvalThreshold: 10,
-    comments: [],
-  },
-  {
-    id: '2',
-    lesson: 'You can’t fight every battle.',
-    anecdote: 'Pick your wars. A wise general knows when to stay silent.',
-    upvotes: 0,
-    downvotes: 0,
-    voters: {},
-    createdAt: new Date(),
-    userId: 'admin',
-    userName: 'Admin',
-    isUserSubmitted: false,
-    isApproved: false,
-    approvalThreshold: 10,
-    comments: [],
-  }
-];
+const initialLessons: Lesson[] = sampleLessons;
 
 export function useLessons() {
   const [lessons, setLessons] = useState<Lesson[]>(initialLessons);
