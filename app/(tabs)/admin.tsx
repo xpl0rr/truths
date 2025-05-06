@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -11,11 +11,11 @@ import {
   Alert,
 } from 'react-native';
 import textStyles from '../styles/textStyles';
-import { useLessons } from '../../store/lessonStore-persist';
+import { useLessons } from '@/store/lessonStore';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AddTruthModal from '../components/AddTruthModal';
 import { useRouter } from 'expo-router';
-import FullScreenEditLessonMain from '../components/FullScreenEditLessonMain';
+import FullScreenEditLesson from '../../components/FullScreenEditLesson';
 import type { Lesson } from '../../src/models/Lesson';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
@@ -202,7 +202,7 @@ export default function AdminScreen() {
         }}
       />
       {editingLesson && (
-        <FullScreenEditLessonMain
+        <FullScreenEditLesson
           visible={!!editingLesson}
           lesson={editingLesson}
           onSave={handleSaveEdit}
