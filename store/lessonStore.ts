@@ -4,7 +4,7 @@ import { persist } from 'zustand/middleware';
 
 type VoteType = 'up' | 'down';
 
-import type { Lesson } from '../app/models/Lesson';
+import type { Lesson } from '../src/models/Lesson';
 
 type LessonStore = {
   lessons: Lesson[];
@@ -12,14 +12,14 @@ type LessonStore = {
   getApprovedLessons: () => Lesson[];
   getUserSubmittedLessons: () => Lesson[];
   addLesson: (lesson: Lesson, options?: { approved?: boolean }) => void;
-  updateLessonText: (id: string, newTitle: string, markApproved?: boolean) => void;
+  updateLessonText: (id: string, newTitle: string, markApproved?: boolean, newAnecdote?: string) => void;
   deleteLesson: (id: string) => void;
   approveLesson: (id: string) => void;
   voteLesson: (lessonId: string, userId: string, voteType: VoteType | null) => void;
 };
 
 export const useLessons = create<LessonStore>(
-  persist(
+  persist<LessonStore>(
     (set, get) => ({
       lessons: [
         {
@@ -120,7 +120,7 @@ export const useLessons = create<LessonStore>(
     }),
     {
       name: 'lessons-storage',
-      getStorage: () => AsyncStorage,
+      storage: AsyncStorage,
     }
   )
 );
