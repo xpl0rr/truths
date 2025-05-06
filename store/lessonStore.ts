@@ -5,6 +5,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 type VoteType = 'up' | 'down';
 
 import type { Lesson } from '../src/models/Lesson';
+import { sampleLessons } from '../src/models/Lesson';
 
 type LessonStore = {
   lessons: Lesson[];
@@ -21,38 +22,7 @@ type LessonStore = {
 export const useLessons = create<LessonStore>()(
   persist<LessonStore>(
     (set, get) => ({
-      lessons: [
-        {
-          id: '1',
-          lesson: 'You decide when you are disappointed.',
-          anecdote: 'Expectations are silent contracts. You can tear them up anytime.',
-          upvotes: 0,
-          downvotes: 0,
-          voters: {},
-          createdAt: new Date(),
-          userId: 'admin',
-          userName: 'Admin',
-          isUserSubmitted: false,
-          isApproved: true,
-          approvalThreshold: 10,
-          comments: [],
-        },
-        {
-          id: '2',
-          lesson: 'You can’t fight every battle.',
-          anecdote: 'Pick your wars. A wise general knows when to stay silent.',
-          upvotes: 0,
-          downvotes: 0,
-          voters: {},
-          createdAt: new Date(),
-          userId: 'admin',
-          userName: 'Admin',
-          isUserSubmitted: false,
-          isApproved: false,
-          approvalThreshold: 10,
-          comments: [],
-        },
-      ],
+      lessons: sampleLessons,
 
       getAllLessons: () => get().lessons,
 
