@@ -5,16 +5,13 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { useHydrateLessons } from '../store/lessonStore-persist';
+// removed obsolete hydration hook
 
 // Splash and font gating removed
 
 export default function RootLayout() {
   /* 1️⃣  Detect the device colour scheme (light / dark) */
   const colorScheme = useColorScheme();
-
-  // Trigger persistent store hydration
-  useHydrateLessons();
 
   /* 5️⃣  Root navigation tree */
   return (
