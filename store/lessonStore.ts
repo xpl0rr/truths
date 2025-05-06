@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 type VoteType = 'up' | 'down';
 
@@ -18,7 +18,7 @@ type LessonStore = {
   voteLesson: (lessonId: string, userId: string, voteType: VoteType | null) => void;
 };
 
-export const useLessons = create<LessonStore>(
+export const useLessons = create<LessonStore>()(
   persist<LessonStore>(
     (set, get) => ({
       lessons: [
@@ -120,7 +120,7 @@ export const useLessons = create<LessonStore>(
     }),
     {
       name: 'lessons-storage',
-      storage: AsyncStorage,
+      storage: createJSONStorage(() => AsyncStorage),
     }
   )
 );
