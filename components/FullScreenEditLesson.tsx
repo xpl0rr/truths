@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 
-import type { Lesson } from '@/store/lessonStore-persist';
+import type { Lesson } from '../src/models/Lesson';
 
 type Props = {
   visible: boolean;
