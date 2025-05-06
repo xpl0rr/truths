@@ -7,7 +7,8 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "channel": "main"
+      "channel": "main",
+      "ios": { "buildConfiguration": "Debug" }
     },
     "preview": {
       "distribution": "internal",
