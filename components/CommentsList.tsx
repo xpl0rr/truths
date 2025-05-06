@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect } from 'react';
 import { StyleSheet, View, TouchableOpacity, TextInput, FlatList, Alert, KeyboardAvoidingView, Platform, SafeAreaView, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
 import { ThemedText } from './ThemedText';
 import { CommentItem } from './CommentItem';
-import { Comment } from '@/app/models/Lesson';
-import { useLessons } from '@/app/store/LessonStore';
+import type { Comment } from '../src/models/Lesson';
+import { useLessons } from '../store/lessonStore';
 
 interface CommentsListProps {
     lessonId: string;
