@@ -4,7 +4,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 
 type VoteType = 'up' | 'down';
 
-import type { Lesson } from '../src/models/Lesson';
+import type { Lesson, Comment } from '../src/models/Lesson';
 import { sampleLessons } from '../src/models/Lesson';
 
 type LessonStore = {
@@ -17,6 +17,9 @@ type LessonStore = {
   deleteLesson: (id: string) => void;
   approveLesson: (id: string) => void;
   voteLesson: (lessonId: string, userId: string, voteType: VoteType | null) => void;
+  getComments: (lessonId: string) => Comment[];
+  addComment: (lessonId: string, text: string, userId: string, userName: string) => void;
+  deleteComment: (lessonId: string, commentId: string) => void;
 };
 
 export const useLessons = create<LessonStore>()(
@@ -85,6 +88,30 @@ export const useLessons = create<LessonStore>()(
             }
             return { ...l, voters: updatedVoters };
           }),
+        }));
+      },
+
+      getComments: (lessonId) => {
+        const lesson = get().lessons.find((l) => l.id === lessonId);
+        return lesson?.comments ?? [];
+      },
+
+      addComment: (lessonId, text, userId, userName) => {
+        const newComment: Comment = { id: Date.now().toString(), text, userId, userName, createdAt: new Date() };
+        set((state) => ({
+          lessons: state.lessons.map((l) =>
+            l.id === lessonId ? { ...l, comments: [...(l.comments ?? []), newComment] } : l
+          ),
+        }));
+      },
+
+      deleteComment: (lessonId, commentId) => {
+        set((state) => ({
+          lessons: state.lessons.map((l) =>
+            l.id === lessonId
+              ? { ...l, comments: l.comments?.filter((c) => c.id !== commentId) ?? [] }
+              : l
+          ),
         }));
       },
     }),
