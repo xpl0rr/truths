@@ -116,7 +116,7 @@ export const useLessons = create<LessonStore>()(
       },
     }),
     {
-      name: 'lessons-storage',
+      name: 'lessons-storage-v2',
       storage: createJSONStorage(() => AsyncStorage),
     }
   )
