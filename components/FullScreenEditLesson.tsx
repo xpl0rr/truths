@@ -16,7 +16,7 @@ export default function FullScreenEditLesson({
   onSave,
   onClose,
 }: Props) {
-  const [title, setTitle] = useState(lesson.title || '');
+  const [title, setTitle] = useState(lesson.lesson || '');
   const [anecdote, setAnecdote] = useState(lesson.anecdote || '');
 
   return (
