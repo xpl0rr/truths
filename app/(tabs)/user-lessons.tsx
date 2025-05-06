@@ -10,9 +10,9 @@ import {
 } from 'react-native';
 import textStyles from '../styles/textStyles';
 import LessonCard from '../../components/LessonCard';
-import { useLessons } from '../../src/store/LessonStore';
+import { useLessons } from '../../store/lessonStore';
 import AddTruthModal from '../components/AddTruthModal';
-import FullScreenLesson from '@/components/FullScreenLesson';
+import FullScreenLesson from '../../components/FullScreenLesson';
 
 export default function CommunityScreen() {
 
