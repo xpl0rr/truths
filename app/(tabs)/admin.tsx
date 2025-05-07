@@ -13,7 +13,7 @@ import {
 import textStyles from '../styles/textStyles';
 import { useLessons } from '@/store/lessonStore';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import AddTruthModal from '../components/AddTruthModal';
+import AddWisdomModal from '../components/AddWisdomModal';
 import { useRouter } from 'expo-router';
 import FullScreenEditLesson from '../../components/FullScreenEditLesson';
 import type { Lesson } from '../../src/models/Lesson';
@@ -23,7 +23,7 @@ import { Ionicons } from '@expo/vector-icons';
 function DebugLessons() {
   useEffect(() => {
     async function debugPrintLessons() {
-      const raw = await AsyncStorage.getItem('truths_lessons');
+      const raw = await AsyncStorage.getItem('wisdom_lessons');
       if (!raw) {
         console.log('No lessons found in storage.');
       } else {
@@ -59,7 +59,7 @@ export default function AdminScreen() {
   const [showAddModal, setShowAddModal] = useState(false);
 
   const allLessons = getAllLessons();
-  // Show only unapproved truths by default
+  // Show only unapproved wisdom by default
   const visibleLessons = searchQuery.trim().length === 0
     ? allLessons.filter(
       (l) => typeof l.lesson === 'string' && l.lesson.trim().length > 0 && !l.isApproved
@@ -109,7 +109,7 @@ export default function AdminScreen() {
       approvalThreshold: 10,
       comments: [],
     });
-    notifySuccess('Truth added and promoted to main page');
+    notifySuccess('Wisdom added and promoted to main page');
     setShowAddModal(false);
     router.push('/');
   };
@@ -133,7 +133,7 @@ export default function AdminScreen() {
           <View style={{ position: 'relative', justifyContent: 'center' }}>
             <TextInput
               style={[styles.search, { paddingRight: 36, height: 44 }]}
-              placeholder="Search truths..."
+              placeholder="Search wisdom..."
               placeholderTextColor="#999"
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -152,7 +152,7 @@ export default function AdminScreen() {
           {filtered.length === 0 && searchQuery.length > 0 ? (
             <Text style={textStyles.body}>No matches found.</Text>
           ) : filtered.length === 0 ? (
-            <Text style={textStyles.body}>No truths yet.</Text>
+            <Text style={textStyles.body}>No wisdom yet.</Text>
           ) : (
             filtered.map((lesson) => (
               <View key={lesson.id} style={styles.card}>
@@ -187,13 +187,13 @@ export default function AdminScreen() {
         }}
         onPress={() => setShowAddModal(true)}
       >
-        <Text style={{ fontSize: 16, fontWeight: '400', color: '#222' }}>+ Add Your Truth</Text>
+        <Text style={{ fontSize: 16, fontWeight: '400', color: '#222' }}>+ Add Your Wisdom</Text>
       </TouchableOpacity>
-      <AddTruthModal
+      <AddWisdomModal
         visible={showAddModal}
         onClose={() => setShowAddModal(false)}
         onSubmit={(input: { lesson: string; anecdote: string }) => {
-          console.log('[AddTruthModal onSubmit] received:', input);
+          console.log('[AddWisdomModal onSubmit] received:', input);
           if (!input.lesson || !input.lesson.trim()) {
             alert('Lesson is required!');
             return;
