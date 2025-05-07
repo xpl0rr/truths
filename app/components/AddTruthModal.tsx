@@ -48,7 +48,7 @@ export default function AddTruthModal({ visible, onClose, onSubmit }: AddTruthMo
               style={styles.titleInput}
               value={lesson}
               onChangeText={setLesson}
-              placeholder="Truth title (required)"
+              placeholder="Wisdom title (required)"
               placeholderTextColor="#aaa"
               multiline
               numberOfLines={2}
