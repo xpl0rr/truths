@@ -11,7 +11,7 @@ import {
 import textStyles from '../styles/textStyles';
 import LessonCard from '../../components/LessonCard';
 import { useLessons } from '../../store/lessonStore';
-import AddTruthModal from '../components/AddTruthModal';
+import AddWisdomModal from '../components/AddWisdomModal';
 import FullScreenLesson from '../../components/FullScreenLesson';
 
 export default function CommunityScreen() {
@@ -96,7 +96,7 @@ export default function CommunityScreen() {
 </View>
 
             <TouchableOpacity onPress={() => setShowAddModal(true)}>
-                <Text style={textStyles.button}>+ Add Your Truth</Text>
+                <Text style={textStyles.button}>+ Add Your Wisdom</Text>
             </TouchableOpacity>
 
             {unapprovedLessons.length > 0 ? (
@@ -108,15 +108,15 @@ export default function CommunityScreen() {
                 />
             ) : (
                 <View style={styles.empty}>
-                    <Text style={textStyles.body}>No unapproved truths yet.</Text>
+                    <Text style={textStyles.body}>No unapproved wisdom yet.</Text>
                 </View>
             )}
 
-            <AddTruthModal
+            <AddWisdomModal
                 visible={showAddModal}
                 onClose={() => setShowAddModal(false)}
                 onSubmit={(input: { lesson: string; anecdote: string }) => {
-                    console.log('[AddTruthModal onSubmit] received:', input);
+                    console.log('[AddWisdomModal onSubmit] received:', input);
                     if (!input.lesson || !input.lesson.trim()) {
                         alert('Lesson is required!');
                         return;
