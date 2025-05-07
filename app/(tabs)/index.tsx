@@ -14,19 +14,19 @@ import textStyles from '../styles/textStyles';
 import { useLessons } from '../../store/lessonStore';
 import type { Lesson } from '../../src/models/Lesson';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import AddTruthModal from '../components/AddTruthModal';
+import AddWisdomModal from '../components/AddWisdomModal';
 import { useRouter } from 'expo-router';
 import FullScreenLesson from '../../components/FullScreenLesson';
 import LessonCard from '../../components/LessonCard';
 
-export default function TruthsScreen() {
+export default function WisdomScreen() {
   const { getApprovedLessons, voteLesson, addLesson } = useLessons();
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const userId = 'user123'; // Replace with actual user id logic if available
   const userName = 'Jane Doe'; // Replace with actual user name logic if available
 
-  // Only show approved truths
+  // Only show approved wisdom
   const approvedLessons = getApprovedLessons()
     .filter(l => typeof l.lesson === 'string' && l.lesson.trim().length > 0 && l.isApproved === true)
     .slice()
@@ -76,11 +76,11 @@ export default function TruthsScreen() {
             <Text style={textStyles.body}>It Is Known</Text>
           </View>
           <TouchableOpacity onPress={() => setShowAddModal(true)}>
-            <Text style={textStyles.button}>+ Add Your Truth</Text>
+            <Text style={textStyles.button}>+ Add Your Wisdom</Text>
           </TouchableOpacity>
           <ScrollView contentContainerStyle={styles.container}>
             {approvedLessons.length === 0 ? (
-              <Text style={textStyles.body}>No truths yet.</Text>
+              <Text style={textStyles.body}>No wisdom yet.</Text>
             ) : (
               approvedLessons.map((lesson) => (
                 <LessonCard
@@ -93,7 +93,7 @@ export default function TruthsScreen() {
               ))
             )}
           </ScrollView>
-          <AddTruthModal
+          <AddWisdomModal
             visible={showAddModal}
             onClose={() => setShowAddModal(false)}
             onSubmit={(input: { lesson: string; anecdote: string }) => {
