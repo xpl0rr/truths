@@ -4,11 +4,11 @@ export default ({ config }) => ({
   ...config,
 
   /* ── basic app info ─────────────────────────────── */
-  name: 'truths',
-  slug: 'truths',
+  name: 'wisdom',
+  slug: 'wisdom',
   version: '1.0.0',
   orientation: 'portrait',
-  scheme: 'truths',
+  scheme: 'wisdom',
 
   extra: {
     eas: {
@@ -18,9 +18,14 @@ export default ({ config }) => ({
 
   /* ── iOS ─────────────────────────────────────────── */
   ios: {
-    bundleIdentifier: 'com.xplorr.truths',
+    bundleIdentifier: 'com.xplorr.wisdom',
     supportsTablet: true,
     buildNumber: '2',          // bump when you rebuild
+  },
+
+  /* ── Android ─────────────────────────────────────── */
+  android: {
+    package: 'com.xplorr.wisdom',
   },
 
   /* ── OTA updates ────────────────────────────────── */
