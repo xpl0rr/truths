@@ -18,6 +18,13 @@
     "production": {
       "autoIncrement": true,
       "channel": "main"
+    },
+    "offline": {
+      "distribution": "internal",
+      "android": { "buildType": "apk" },
+      "ios": { "buildConfiguration": "Release" },
+      "autoIncrement": true,
+      "channel": "offline"
     }
   },
   "submit": {
