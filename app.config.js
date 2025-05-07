@@ -5,7 +5,7 @@ export default ({ config }) => ({
 
   /* ── basic app info ─────────────────────────────── */
   name: 'wisdom',
-  slug: 'wisdom',
+  slug: 'truths',
   version: '1.0.0',
   orientation: 'portrait',
   scheme: 'wisdom',
