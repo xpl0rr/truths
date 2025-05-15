@@ -9,6 +9,7 @@ import {
   ToastAndroid,
   Platform,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import textStyles from '../styles/textStyles';
 import { useLessons } from '@/store/lessonStore';
@@ -19,6 +20,7 @@ import FullScreenEditLesson from '../../components/FullScreenEditLesson';
 import type { Lesson } from '../../src/models/Lesson';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
+import { exportData, importData } from '../../utils/backupRestore';
 
 function DebugLessons() {
   useEffect(() => {
@@ -43,6 +45,9 @@ function DebugLessons() {
 export default function AdminScreen() {
   // Debug: show AsyncStorage contents in console
   DebugLessons();
+  
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
 
   const {
     getAllLessons,
@@ -122,12 +127,69 @@ export default function AdminScreen() {
       );
 
   // --- All rendering logic is now inside the function ---
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      await exportData();
+    } catch (error) {
+      console.error('Export error:', error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleImport = async () => {
+    setIsImporting(true);
+    try {
+      await importData();
+    } catch (error) {
+      console.error('Import error:', error);
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   return (
     <SafeAreaView style={[styles.safe, { flex: 1, position: 'relative' }]}> 
       <View style={{ flex: 1, paddingBottom: 24 }}>
         <ScrollView contentContainerStyle={styles.container}>
           <View style={{ alignItems: 'center' }}>
             <Text style={textStyles.title}>Admin</Text>
+          </View>
+          
+          <View style={styles.backupSection}>
+            <Text style={styles.sectionTitle}>Data Backup & Restore</Text>
+            <View style={styles.backupButtons}>
+              <TouchableOpacity 
+                style={[styles.backupButton, isExporting && styles.disabledButton]} 
+                onPress={handleExport}
+                disabled={isExporting || isImporting}
+              >
+                {isExporting ? (
+                  <ActivityIndicator size="small" color="#007AFF" />
+                ) : (
+                  <>
+                    <Ionicons name="cloud-upload-outline" size={18} color="#007AFF" />
+                    <Text style={styles.backupButtonText}>Export Data</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.backupButton, isImporting && styles.disabledButton]} 
+                onPress={handleImport}
+                disabled={isExporting || isImporting}
+              >
+                {isImporting ? (
+                  <ActivityIndicator size="small" color="#007AFF" />
+                ) : (
+                  <>
+                    <Ionicons name="cloud-download-outline" size={18} color="#007AFF" />
+                    <Text style={styles.backupButtonText}>Import Data</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
 
           <View style={{ position: 'relative', justifyContent: 'center' }}>
@@ -227,6 +289,50 @@ const styles = StyleSheet.create({
   },
   safe: { flex: 1, backgroundColor: '#fff' },
   container: { paddingHorizontal: 16, paddingBottom: 32 },
+  titleSearch: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  backupSection: {
+    marginVertical: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 12,
+    color: '#333',
+  },
+  backupButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  backupButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#e6f2ff',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#cce6ff',
+    flex: 0.48,
+  },
+  backupButtonText: {
+    marginLeft: 8,
+    color: '#007AFF',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  disabledButton: {
+    opacity: 0.6,
+  },
   lesson: {
     fontSize: 16,
     fontWeight: '600',
