@@ -73,7 +73,7 @@ export default function WisdomScreen() {
       ) : (
         <>
           <View style={{alignItems: 'center'}}>
-            <Text style={textStyles.body}>It Is Known</Text>
+            <Text style={textStyles.body}>The Long Game</Text>
           </View>
           <TouchableOpacity onPress={() => setShowAddModal(true)}>
             <Text style={textStyles.button}>+ Add Your Wisdom</Text>
