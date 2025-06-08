@@ -227,10 +227,10 @@ export default function AdminScreen() {
             </TouchableOpacity>
           </View>
 
-          <View style={{ position: 'relative', justifyContent: 'center', marginTop: 8 }}>
+          <View style={{ position: 'relative', justifyContent: 'center', marginTop: 16 }}>
             <TextInput
               style={[styles.search, { paddingRight: 36, height: 44 }]}
-              placeholder={activeTab === 'wisdoms' ? "Search all wisdom" : "Search pending comments"}
+              placeholder="Search for a Wisdom"
               placeholderTextColor="#999"
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -366,9 +366,7 @@ export default function AdminScreen() {
                   ))
                 ) : searchQuery ? (
                   <Text style={styles.emptyText}>No matching comments found.</Text>
-                ) : (
-                  <Text style={styles.emptyText}>No pending comments.</Text>
-                )}
+                ) : null}
               </>
             )}
           </ScrollView>
