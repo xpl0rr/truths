@@ -5,7 +5,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 type VoteType = 'up' | 'down';
 
 import type { Lesson, Comment } from '../src/models/Lesson';
-import { sampleLessons } from '../src/models/Lesson';
+import { emptyLessons } from '../src/models/Lesson';
 
 type LessonStore = {
   lessons: Lesson[];
@@ -27,7 +27,7 @@ type LessonStore = {
 export const useLessons = create<LessonStore>()(
   persist<LessonStore>(
     (set, get) => ({
-      lessons: sampleLessons,
+      lessons: emptyLessons,
 
       getAllLessons: () => get().lessons,
 
