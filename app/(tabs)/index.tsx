@@ -26,11 +26,27 @@ export default function WisdomScreen() {
   const userId = 'user123'; // Replace with actual user id logic if available
   const userName = 'Jane Doe'; // Replace with actual user name logic if available
 
+  // Calculate Wilson score confidence interval for sorting
+  const calculateWilsonScore = (up: number, down: number): number => {
+    // Edge case: no votes
+    if (up + down === 0) return 0;
+    
+    const n = up + down;
+    const z = 1.96; // 95% confidence
+    const p = up / n;
+    
+    // Wilson score confidence interval
+    const numerator = p + z*z/(2*n) - z * Math.sqrt((p*(1-p) + z*z/(4*n))/n);
+    const denominator = 1 + z*z/n;
+    
+    return numerator / denominator;
+  };
+  
   // Only show approved wisdom
   const approvedLessons = getApprovedLessons()
     .filter(l => typeof l.lesson === 'string' && l.lesson.trim().length > 0 && l.isApproved === true)
     .slice()
-    .sort((a, b) => (b.upvotes - b.downvotes) - (a.upvotes - a.downvotes));
+    .sort((a, b) => calculateWilsonScore(b.upvotes, b.downvotes) - calculateWilsonScore(a.upvotes, a.downvotes));
 
   const handleVote = (lessonId: string, userId: string, voteType: 'up' | 'down' | null) => {
     voteLesson(lessonId, userId, voteType);
