@@ -157,8 +157,17 @@ export default function AdminScreen() {
             <Text style={textStyles.title}>Admin</Text>
           </View>
 
-          <TouchableOpacity onPress={() => setShowAddModal(true)} style={{marginTop: 20}}>
-            <Text style={{ fontSize: 16, fontWeight: 'normal', color: '#000', textAlign: 'center', marginVertical: 6 }}>+ Add Your Wisdom</Text>
+          <TouchableOpacity 
+            onPress={() => setShowAddModal(true)} 
+            style={{
+              marginTop: 20,
+              backgroundColor: '#f5f5f5',
+              paddingVertical: 8,
+              paddingHorizontal: 12,
+              borderRadius: 8,
+            }}
+          >
+            <Text style={{ fontSize: 16, fontWeight: 'normal', color: '#000', textAlign: 'center' }}>+ Add Your Wisdom</Text>
           </TouchableOpacity>
           
           <View style={styles.backupSection}>

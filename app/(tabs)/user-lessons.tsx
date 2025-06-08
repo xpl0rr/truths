@@ -7,6 +7,7 @@ import {
     Text,
     TouchableOpacity,
     Alert,
+    ScrollView,
 } from 'react-native';
 import textStyles from '../styles/textStyles';
 import LessonCard from '../../components/LessonCard';
@@ -90,49 +91,70 @@ export default function CommunityScreen() {
     }
 
     return (
-        <SafeAreaView style={styles.container}>
-            <View style={{alignItems: 'center'}}>
-  <Text style={textStyles.title}>Community</Text>
-</View>
+        <SafeAreaView style={[styles.safe, { flex: 1, position: 'relative' }]}> 
+            <View style={{ flex: 1, paddingBottom: 24 }}>
+                <ScrollView contentContainerStyle={styles.container}>
+                    <View style={{ alignItems: 'center' }}>
+                        <Text style={textStyles.title}>Community</Text>
+                    </View>
 
-            <TouchableOpacity onPress={() => setShowAddModal(true)} style={{marginTop: 20}}>
-                <Text style={styles.addWisdomLink}>+ Add Your Wisdom</Text>
-            </TouchableOpacity>
+                    <TouchableOpacity 
+                        onPress={() => setShowAddModal(true)} 
+                        style={{
+                            marginTop: 20,
+                            backgroundColor: '#f5f5f5',
+                            paddingVertical: 8,
+                            paddingHorizontal: 12,
+                            borderRadius: 8,
+                        }}
+                    >
+                        <Text style={{ fontSize: 16, fontWeight: 'normal', color: '#000', textAlign: 'center' }}>+ Add Your Wisdom</Text>
+                    </TouchableOpacity>
 
-            {unapprovedLessons.length > 0 ? (
-                <FlatList
-                    data={unapprovedLessons}
-                    renderItem={renderLessonCard}
-                    keyExtractor={(item) => item.id}
-                    contentContainerStyle={styles.list}
+                    {unapprovedLessons.length > 0 ? (
+                        <FlatList
+                            data={unapprovedLessons}
+                            renderItem={renderLessonCard}
+                            keyExtractor={(item) => item.id}
+                            contentContainerStyle={styles.list}
+                        />
+                    ) : (
+                        <View style={styles.empty}>
+                            <Text style={textStyles.body}>No unapproved wisdom yet.</Text>
+                        </View>
+                    )}
+                </ScrollView>
+
+                <AddWisdomModal
+                    visible={showAddModal}
+                    onClose={() => setShowAddModal(false)}
+                    onSubmit={(input: { lesson: string; anecdote: string }) => {
+                        console.log('[AddWisdomModal onSubmit] received:', input);
+                        if (!input.lesson || !input.lesson.trim()) {
+                            alert('Lesson is required!');
+                            return;
+                        }
+                        handleAddNew(input);
+                    }}
                 />
-            ) : (
-                <View style={styles.empty}>
-                    <Text style={textStyles.body}>No unapproved wisdom yet.</Text>
-                </View>
-            )}
-
-            <AddWisdomModal
-                visible={showAddModal}
-                onClose={() => setShowAddModal(false)}
-                onSubmit={(input: { lesson: string; anecdote: string }) => {
-                    console.log('[AddWisdomModal onSubmit] received:', input);
-                    if (!input.lesson || !input.lesson.trim()) {
-                        alert('Lesson is required!');
-                        return;
-                    }
-                    handleAddNew(input);
-                }}
-            />
+                
+                {selectedLesson && (
+                    <FullScreenLesson
+                        lesson={selectedLesson}
+                        onClose={() => setSelectedLesson(null)}
+                        userId={userId}
+                        userName={userName}
+                        isAdmin={false}
+                    />
+                )}
+            </View>
         </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#fff',
-    },
+    safe: { flex: 1, backgroundColor: '#fff' },
+    container: { paddingHorizontal: 16, paddingBottom: 32 },
     lesson: {
         fontSize: 16,
         fontWeight: '600',
