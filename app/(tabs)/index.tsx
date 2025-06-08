@@ -23,8 +23,8 @@ export default function WisdomScreen() {
   const { getApprovedLessons, voteLesson, addLesson } = useLessons();
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
-  const userId = 'user123'; // Replace with actual user id logic if available
-  const userName = 'Jane Doe'; // Replace with actual user name logic if available
+  const userId = 'user1'; // Replace with actual user id from authentication
+  const userName = 'User'; // Replace with actual user name from authentication
 
   // Calculate Wilson score confidence interval for sorting
   const calculateWilsonScore = (up: number, down: number): number => {

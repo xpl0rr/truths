@@ -22,6 +22,7 @@ type LessonStore = {
   deleteComment: (lessonId: string, commentId: string) => void;
   voteComment: (lessonId: string, commentId: string, userId: string, voteType: VoteType | null) => void;
   approveComment: (lessonId: string, commentId: string) => void;
+  resetAllData: () => void; // Add function to reset all data
 };
 
 export const useLessons = create<LessonStore>()(
@@ -190,20 +191,28 @@ export const useLessons = create<LessonStore>()(
       
       approveComment: (lessonId: string, commentId: string) => {
         set((state) => ({
-          lessons: state.lessons.map((l) => {
-            if (l.id !== lessonId) return l;
-            
-            const updatedComments = (l.comments || []).map((comment) => 
-              comment.id === commentId ? { ...comment, isApproved: true } : comment
-            );
-            
-            return { ...l, comments: updatedComments };
+          lessons: state.lessons.map((lesson) => {
+            if (lesson.id === lessonId) {
+              const updatedComments = lesson.comments?.map((comment) => {
+                if (comment.id === commentId) {
+                  return { ...comment, isApproved: true };
+                }
+                return comment;
+              });
+              return { ...lesson, comments: updatedComments };
+            }
+            return lesson;
           }),
         }));
       },
+      
+      // Function to reset all data to empty state
+      resetAllData: () => {
+        set({ lessons: [] });
+      },
     }),
     {
-      name: 'wisdom-storage-v2',
+      name: 'wisdom-storage-v3', // Incremented version to clear previous sample data
       storage: createJSONStorage(() => AsyncStorage),
     }
   )

@@ -17,8 +17,8 @@ import FullScreenLesson from '../../components/FullScreenLesson';
 
 export default function CommunityScreen() {
 
-    const userId = 'user123';
-    const userName = 'Jane Doe';
+    const userId = 'user1';
+    const userName = 'User';
     const {
         getAllLessons,
         voteLesson,
