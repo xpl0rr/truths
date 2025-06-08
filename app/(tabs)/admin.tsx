@@ -186,7 +186,7 @@ export default function AdminScreen() {
           <TouchableOpacity 
             onPress={() => setShowAddModal(true)} 
             style={{
-              marginTop: 20,
+              marginTop: 16,
               backgroundColor: '#f5f5f5',
               paddingVertical: 8,
               paddingHorizontal: 12,
@@ -196,10 +196,41 @@ export default function AdminScreen() {
             <Text style={{ fontSize: 16, fontWeight: 'normal', color: '#000', textAlign: 'center' }}>+ Add Your Wisdom</Text>
           </TouchableOpacity>
           
-          <View style={{ position: 'relative', justifyContent: 'center', marginTop: 16 }}>
+          <View style={styles.buttonGroup}>
+
+            <TouchableOpacity 
+              onPress={() => setActiveTab('wisdoms')}
+              style={[styles.standardButton, styles.tabButton, activeTab === 'wisdoms' && styles.activeTabButton]}
+            >
+              <View style={styles.tabContent}>
+                <Text style={styles.standardButtonText}>Pending Wisdoms</Text>
+                {visibleLessons.length > 0 && (
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>{visibleLessons.length}</Text>
+                  </View>
+                )}
+              </View>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              onPress={() => setActiveTab('comments')}
+              style={[styles.standardButton, styles.tabButton, activeTab === 'comments' && styles.activeTabButton]}
+            >
+              <View style={styles.tabContent}>
+                <Text style={styles.standardButtonText}>Pending Comments</Text>
+                {pendingComments.length > 0 && (
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>{pendingComments.length}</Text>
+                  </View>
+                )}
+              </View>
+            </TouchableOpacity>
+          </View>
+
+          <View style={{ position: 'relative', justifyContent: 'center', marginTop: 8 }}>
             <TextInput
               style={[styles.search, { paddingRight: 36, height: 44 }]}
-              placeholder="Search for a Wisdom"
+              placeholder={activeTab === 'wisdoms' ? "Search all wisdom" : "Search pending comments"}
               placeholderTextColor="#999"
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -214,36 +245,10 @@ export default function AdminScreen() {
               </TouchableOpacity>
             )}
           </View>
-
-          <View style={styles.tabs}>
-            <TouchableOpacity
-              style={[styles.tab, activeTab === 'wisdoms' && styles.activeTab]}
-              onPress={() => setActiveTab('wisdoms')}
-            >
-              <Text style={styles.tabText}>Pending Wisdoms</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.tab, activeTab === 'comments' && styles.activeTab]}
-              onPress={() => setActiveTab('comments')}
-            >
-              <Text style={styles.tabText}>Pending Comments</Text>
-            </TouchableOpacity>
-          </View>
-
-          <TextInput
-            style={styles.searchBox}
-            placeholder={activeTab === 'wisdoms' ? "Search all wisdom" : "Search pending comments"}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-
+          
           <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.contentContainer}>
             {activeTab === 'wisdoms' ? (
               <>
-                <Text style={styles.listHeader}>
-                  Pending Wisdom Approval ({filtered.length})
-                </Text>
-
                 {filtered.length > 0 ? (
                   filtered.map((item, idx) => (
                     <View key={item.id} style={styles.card}>
@@ -303,16 +308,10 @@ export default function AdminScreen() {
                   ))
                 ) : searchQuery ? (
                   <Text style={styles.emptyText}>No matching wisdom found.</Text>
-                ) : (
-                  <Text style={styles.emptyText}>No pending submissions.</Text>
-                )}
+                ) : null}
               </>
             ) : (
               <>
-                <Text style={styles.listHeader}>
-                  Pending Comment Approval ({filteredComments.length})
-                </Text>
-
                 {filteredComments.length > 0 ? (
                   filteredComments.map((comment) => (
                     <View key={comment.id} style={styles.card}>
@@ -433,21 +432,42 @@ export default function AdminScreen() {
 }
 
 const styles = StyleSheet.create({
-  tabs: {
-    flexDirection: 'row',
+  buttonGroup: {
+    flexDirection: 'column',
     marginBottom: 16,
+    width: '100%',
+    gap: 8,
   },
-  tab: {
-    flex: 1,
-    paddingVertical: 8,
+  tabButton: {
+    backgroundColor: '#f5f5f5',
+    width: '100%',
+  },
+  activeTabButton: {
+    backgroundColor: '#e0e0e0',
+    borderColor: '#007aff',
+    borderWidth: 1,
+  },
+
+  tabContent: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  activeTab: {
-    borderBottomWidth: 2,
-    borderBottomColor: '#007aff',
+  badge: {
+    backgroundColor: '#007aff',
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 4,
+    paddingHorizontal: 2,
   },
-  tabText: {
-    fontSize: 16,
+  badgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
   commentText: {
     fontSize: 16,
