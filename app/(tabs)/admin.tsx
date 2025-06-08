@@ -151,8 +151,8 @@ export default function AdminScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { flex: 1, position: 'relative' }]}> 
-      <View style={{ flex: 1, paddingBottom: 24 }}>
-        <ScrollView contentContainerStyle={styles.container}>
+      <View style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={styles.container} style={{ flex: 1 }}>
           <View style={{ alignItems: 'center' }}>
             <Text style={textStyles.title}>Admin</Text>
           </View>
@@ -170,41 +170,6 @@ export default function AdminScreen() {
             <Text style={{ fontSize: 16, fontWeight: 'normal', color: '#000', textAlign: 'center' }}>+ Add Your Wisdom</Text>
           </TouchableOpacity>
           
-          <View style={styles.backupSection}>
-            <Text style={styles.sectionTitle}>Data Backup & Restore</Text>
-            <View style={styles.backupButtons}>
-              <TouchableOpacity 
-                style={[styles.backupButton, isExporting && styles.disabledButton]} 
-                onPress={handleExport}
-                disabled={isExporting || isImporting}
-              >
-                {isExporting ? (
-                  <ActivityIndicator size="small" color="#007AFF" />
-                ) : (
-                  <>
-                    <Ionicons name="cloud-upload-outline" size={18} color="#007AFF" />
-                    <Text style={styles.backupButtonText}>Export Data</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={[styles.backupButton, isImporting && styles.disabledButton]} 
-                onPress={handleImport}
-                disabled={isExporting || isImporting}
-              >
-                {isImporting ? (
-                  <ActivityIndicator size="small" color="#007AFF" />
-                ) : (
-                  <>
-                    <Ionicons name="cloud-download-outline" size={18} color="#007AFF" />
-                    <Text style={styles.backupButtonText}>Import Data</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-
           <View style={{ position: 'relative', justifyContent: 'center' }}>
             <TextInput
               style={[styles.search, { paddingRight: 36, height: 44 }]}
