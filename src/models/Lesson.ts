@@ -4,6 +4,10 @@ export interface Comment {
   userId: string;
   userName: string;
   createdAt: Date;
+  upvotes: number;
+  downvotes: number;
+  voters: Record<string, 'up' | 'down' | null>;
+  isApproved: boolean;
 }
 
 export interface Lesson {
