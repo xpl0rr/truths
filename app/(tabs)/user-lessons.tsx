@@ -92,35 +92,30 @@ export default function CommunityScreen() {
 
     return (
         <SafeAreaView style={[styles.safe, { flex: 1, position: 'relative' }]}> 
-            <View style={{ flex: 1, paddingBottom: 24 }}>
-                <ScrollView contentContainerStyle={styles.container}>
-                    <View style={{ alignItems: 'center' }}>
-                        <Text style={textStyles.title}>Community</Text>
-                    </View>
+            <View style={{ flex: 1 }}>
+                {/* Header section */}
+                <View style={styles.header}>
+                    <Text style={textStyles.title}>Community</Text>
+                </View>
 
-                    <TouchableOpacity 
-                        onPress={() => setShowAddModal(true)} 
-                        style={{
-                            marginTop: 20,
-                            backgroundColor: '#f5f5f5',
-                            paddingVertical: 8,
-                            paddingHorizontal: 12,
-                            borderRadius: 8,
-                        }}
-                    >
-                        <Text style={{ fontSize: 16, fontWeight: 'normal', color: '#000', textAlign: 'center' }}>+ Add Your Wisdom</Text>
-                    </TouchableOpacity>
+                {/* Add wisdom button */}
+                <TouchableOpacity 
+                    onPress={() => setShowAddModal(true)} 
+                    style={styles.standardButton}
+                >
+                    <Text style={styles.standardButtonText}>+ Add Your Wisdom</Text>
+                </TouchableOpacity>
 
-                    {unapprovedLessons.length > 0 && (
-                        <FlatList
-                            data={unapprovedLessons}
-                            renderItem={renderLessonCard}
-                            keyExtractor={(item) => item.id}
-                            contentContainerStyle={styles.list}
-                        />
-                    )}
-                </ScrollView>
-
+                {/* Lessons list - using FlatList with ListHeaderComponent to avoid nesting */}
+                <FlatList
+                    data={unapprovedLessons}
+                    renderItem={renderLessonCard}
+                    keyExtractor={(item) => item.id}
+                    contentContainerStyle={styles.list}
+                    style={{ flex: 1, marginTop: 16 }}
+                    ListEmptyComponent={null}
+                />
+                
                 <AddWisdomModal
                     visible={showAddModal}
                     onClose={() => setShowAddModal(false)}
@@ -151,6 +146,28 @@ export default function CommunityScreen() {
 const styles = StyleSheet.create({
     safe: { flex: 1, backgroundColor: '#fff' },
     container: { paddingHorizontal: 16, paddingBottom: 32 },
+    header: { 
+        alignItems: 'center', 
+        paddingHorizontal: 16, 
+        paddingTop: 16 
+    },
+    standardButton: {
+        marginTop: 16,
+        backgroundColor: '#f5f5f5',
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        borderRadius: 8,
+        marginHorizontal: 16,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    standardButtonText: {
+        fontSize: 16,
+        fontWeight: 'normal',
+        color: '#000',
+        textAlign: 'center',
+    },
     lesson: {
         fontSize: 16,
         fontWeight: '600',
