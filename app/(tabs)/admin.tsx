@@ -237,19 +237,8 @@ export default function AdminScreen() {
           )}
         </ScrollView>
       </View>
-      <TouchableOpacity
-        style={{
-          marginTop: 12,
-          marginBottom: 16,
-          alignSelf: 'center',
-          backgroundColor: '#eaeaea',
-          borderRadius: 8,
-          paddingVertical: 8,
-          paddingHorizontal: 18,
-        }}
-        onPress={() => setShowAddModal(true)}
-      >
-        <Text style={{ fontSize: 16, fontWeight: '400', color: '#222' }}>+ Add Your Wisdom</Text>
+      <TouchableOpacity onPress={() => setShowAddModal(true)}>
+        <Text style={{ fontSize: 14, fontWeight: '500', color: '#000', textAlign: 'center', marginVertical: 6 }}>+ Add Your Wisdom</Text>
       </TouchableOpacity>
       <AddWisdomModal
         visible={showAddModal}

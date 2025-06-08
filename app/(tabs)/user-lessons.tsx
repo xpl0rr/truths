@@ -96,7 +96,7 @@ export default function CommunityScreen() {
 </View>
 
             <TouchableOpacity onPress={() => setShowAddModal(true)}>
-                <Text style={textStyles.button}>+ Add Your Wisdom</Text>
+                <Text style={styles.addWisdomLink}>+ Add Your Wisdom</Text>
             </TouchableOpacity>
 
             {unapprovedLessons.length > 0 ? (
@@ -158,5 +158,12 @@ const styles = StyleSheet.create({
         fontWeight: '500',
         marginBottom: 20,
         textAlign: 'center',
+    },
+    addWisdomLink: {
+        color: '#000',
+        fontSize: 14,
+        fontWeight: '500',
+        textAlign: 'center',
+        marginVertical: 6,
     },
 });

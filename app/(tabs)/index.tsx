@@ -88,12 +88,9 @@ export default function WisdomScreen() {
         />
       ) : (
         <>
-          <View style={{alignItems: 'center'}}>
+          <View style={{alignItems: 'center', marginBottom: 8}}>
             <Text style={textStyles.body}>The Long Game</Text>
           </View>
-          <TouchableOpacity onPress={() => setShowAddModal(true)}>
-            <Text style={textStyles.button}>+ Add Your Wisdom</Text>
-          </TouchableOpacity>
           <ScrollView contentContainerStyle={styles.container}>
             {approvedLessons.length === 0 ? (
               <Text style={textStyles.body}>No wisdom yet.</Text>
