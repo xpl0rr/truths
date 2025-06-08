@@ -170,10 +170,10 @@ export default function AdminScreen() {
             <Text style={{ fontSize: 16, fontWeight: 'normal', color: '#000', textAlign: 'center' }}>+ Add Your Wisdom</Text>
           </TouchableOpacity>
           
-          <View style={{ position: 'relative', justifyContent: 'center' }}>
+          <View style={{ position: 'relative', justifyContent: 'center', marginTop: 16 }}>
             <TextInput
               style={[styles.search, { paddingRight: 36, height: 44 }]}
-              placeholder="Search wisdom..."
+              placeholder="Search for a Wisdom"
               placeholderTextColor="#999"
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -191,9 +191,7 @@ export default function AdminScreen() {
 
           {filtered.length === 0 && searchQuery.length > 0 ? (
             <Text style={textStyles.body}>No matches found.</Text>
-          ) : filtered.length === 0 ? (
-            <Text style={textStyles.body}>No wisdom yet.</Text>
-          ) : (
+          ) : filtered.length > 0 && (
             filtered.map((lesson) => (
               <View key={lesson.id} style={styles.card}>
                 <Text style={{ fontSize: 16, fontWeight: '400', color: '#222' }}>{lesson.lesson}</Text>
@@ -214,6 +212,38 @@ export default function AdminScreen() {
             ))
           )}
         </ScrollView>
+        
+        <View style={styles.bottomButtons}>
+          <TouchableOpacity 
+            style={[styles.standardButton, isExporting && styles.disabledButton]} 
+            onPress={handleExport}
+            disabled={isExporting || isImporting}
+          >
+            {isExporting ? (
+              <ActivityIndicator size="small" color="#000" />
+            ) : (
+              <>
+                <Ionicons name="cloud-upload-outline" size={16} color="#000" style={{marginRight: 4}} />
+                <Text style={styles.standardButtonText}>Export Data</Text>
+              </>
+            )}
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[styles.standardButton, isImporting && styles.disabledButton]} 
+            onPress={handleImport}
+            disabled={isExporting || isImporting}
+          >
+            {isImporting ? (
+              <ActivityIndicator size="small" color="#000" />
+            ) : (
+              <>
+                <Ionicons name="cloud-download-outline" size={16} color="#000" style={{marginRight: 4}} />
+                <Text style={styles.standardButtonText}>Import Data</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
 
       <AddWisdomModal
@@ -254,6 +284,29 @@ const styles = StyleSheet.create({
   },
   safe: { flex: 1, backgroundColor: '#fff' },
   container: { paddingHorizontal: 16, paddingBottom: 32 },
+  bottomButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 4,
+    borderTopWidth: 0,
+  },
+  standardButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f5f5f5',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    flex: 0.48,
+  },
+  standardButtonText: {
+    fontSize: 16,
+    fontWeight: 'normal',
+    color: '#000',
+    textAlign: 'center',
+  },
   titleSearch: {
     fontSize: 32,
     fontWeight: 'bold',
