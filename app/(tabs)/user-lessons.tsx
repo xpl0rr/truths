@@ -111,17 +111,13 @@ export default function CommunityScreen() {
                         <Text style={{ fontSize: 16, fontWeight: 'normal', color: '#000', textAlign: 'center' }}>+ Add Your Wisdom</Text>
                     </TouchableOpacity>
 
-                    {unapprovedLessons.length > 0 ? (
+                    {unapprovedLessons.length > 0 && (
                         <FlatList
                             data={unapprovedLessons}
                             renderItem={renderLessonCard}
                             keyExtractor={(item) => item.id}
                             contentContainerStyle={styles.list}
                         />
-                    ) : (
-                        <View style={styles.empty}>
-                            <Text style={textStyles.body}>No unapproved wisdom yet.</Text>
-                        </View>
                     )}
                 </ScrollView>
 
