@@ -4,7 +4,7 @@ import { AntDesign } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
 import { ThemedText } from './ThemedText';
-import { Comment } from '@/app/models/Lesson';
+import { Comment } from '../src/models/Lesson';
 
 interface CommentItemProps {
     comment: Comment;

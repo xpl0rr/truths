@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
+import { AntDesign, Feather } from '@expo/vector-icons';
+import { useLessons } from '../store/lessonStore';
 
 type Props = {
   lesson: {
@@ -12,6 +13,7 @@ type Props = {
     voters: {
       [userId: string]: 'up' | 'down' | null;
     };
+    comments?: Array<any>;
   };
   userId: string;
   onVote: (lessonId: string, userId: string, voteType: 'up' | 'down' | null) => void;
@@ -20,6 +22,12 @@ type Props = {
 
 const LessonCard = ({ lesson, userId, onVote, onSelect }: Props) => {
   const [expanded, setExpanded] = useState(false);
+  const { getComments } = useLessons();
+  
+  // Get all approved comments for this lesson
+  const comments = getComments(lesson.id);
+  const approvedComments = comments.filter(comment => comment.isApproved);
+  const commentCount = approvedComments.length;
 
   // Use voters, upvotes, downvotes from the canonical model
   const userVote = lesson.voters?.[userId] ?? null;
@@ -41,7 +49,15 @@ const LessonCard = ({ lesson, userId, onVote, onSelect }: Props) => {
       <Text style={styles.lessonText}>{lesson.lesson}</Text>
 
       <View style={styles.metaRow}>
-        <Text style={styles.percent}>{approvalRate}% ({upvotes}/{totalVotes || 1})</Text>
+        <View style={styles.metaLeft}>
+          <Text style={styles.percent}>{approvalRate}% ({upvotes}/{totalVotes || 1})</Text>
+          {commentCount > 0 && (
+            <View style={styles.commentCount}>
+              <Feather name="message-circle" size={14} color="#555" />
+              <Text style={styles.commentCountText}>{commentCount}</Text>
+            </View>
+          )}
+        </View>
 
         <View style={styles.voteRow}>
           <TouchableOpacity
@@ -78,6 +94,20 @@ const LessonCard = ({ lesson, userId, onVote, onSelect }: Props) => {
 export default LessonCard;
 
 const styles = StyleSheet.create({
+  metaLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  commentCount: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+  commentCountText: {
+    fontSize: 12,
+    color: '#555',
+    marginLeft: 2,
+  },
   container: {
     backgroundColor: '#f0f0f0',
     padding: 12,

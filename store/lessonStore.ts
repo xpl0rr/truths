@@ -20,6 +20,8 @@ type LessonStore = {
   getComments: (lessonId: string) => Comment[];
   addComment: (lessonId: string, text: string, userId: string, userName: string) => void;
   deleteComment: (lessonId: string, commentId: string) => void;
+  voteComment: (lessonId: string, commentId: string, userId: string, voteType: VoteType | null) => void;
+  approveComment: (lessonId: string, commentId: string) => void;
 };
 
 export const useLessons = create<LessonStore>()(
@@ -111,12 +113,33 @@ export const useLessons = create<LessonStore>()(
       },
 
       addComment: (lessonId, text, userId, userName) => {
-        const newComment: Comment = { id: Date.now().toString(), text, userId, userName, createdAt: new Date() };
-        set((state) => ({
-          lessons: state.lessons.map((l) =>
-            l.id === lessonId ? { ...l, comments: [...(l.comments ?? []), newComment] } : l
-          ),
-        }));
+        const newComment: Comment = { 
+          id: Date.now().toString(), 
+          text, 
+          userId, 
+          userName, 
+          createdAt: new Date(),
+          upvotes: 0,
+          downvotes: 0,
+          voters: {},
+          isApproved: false // Default to unapproved for moderation
+        };
+        set((state) => {
+          return {
+            lessons: state.lessons.map((l) => {
+              if (l.id === lessonId) {
+                const existingComments = l.comments || [];
+                return { 
+                  ...l, 
+                  comments: [...existingComments, newComment] 
+                };
+              }
+              return l;
+            })
+          };
+        });
+        console.log('Added comment:', newComment);
+        console.log('To lesson:', lessonId);
       },
 
       deleteComment: (lessonId, commentId) => {
@@ -126,6 +149,56 @@ export const useLessons = create<LessonStore>()(
               ? { ...l, comments: l.comments?.filter((c) => c.id !== commentId) ?? [] }
               : l
           ),
+        }));
+      },
+      
+      voteComment: (lessonId: string, commentId: string, userId: string, voteType: VoteType | null) => {
+        set((state) => {
+          const updatedLessons = state.lessons.map((lesson) => {
+            if (lesson.id !== lessonId) return lesson;
+            
+            const updatedComments = (lesson.comments || []).map((comment) => {
+              if (comment.id !== commentId) return comment;
+              
+              // Determine how to update votes
+              const currentVote = comment.voters[userId] || null;
+              let upvoteDelta = 0;
+              let downvoteDelta = 0;
+              
+              // Remove existing vote if any
+              if (currentVote === 'up') upvoteDelta--;
+              if (currentVote === 'down') downvoteDelta--;
+              
+              // Add new vote if not canceling
+              if (voteType === 'up') upvoteDelta++;
+              if (voteType === 'down') downvoteDelta++;
+              
+              return {
+                ...comment,
+                upvotes: comment.upvotes + upvoteDelta,
+                downvotes: comment.downvotes + downvoteDelta,
+                voters: { ...comment.voters, [userId]: voteType }
+              };
+            });
+            
+            return { ...lesson, comments: updatedComments };
+          });
+          
+          return { lessons: updatedLessons };
+        });
+      },
+      
+      approveComment: (lessonId: string, commentId: string) => {
+        set((state) => ({
+          lessons: state.lessons.map((l) => {
+            if (l.id !== lessonId) return l;
+            
+            const updatedComments = (l.comments || []).map((comment) => 
+              comment.id === commentId ? { ...comment, isApproved: true } : comment
+            );
+            
+            return { ...l, comments: updatedComments };
+          }),
         }));
       },
     }),

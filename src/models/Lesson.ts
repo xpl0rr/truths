@@ -47,14 +47,22 @@ export const sampleLessons: Lesson[] = [
         text: "This really resonates with me. I've learned this lesson the hard way too.",
         userId: 'user123',
         userName: 'Jane',
-        createdAt: new Date('2023-01-16')
+        createdAt: new Date('2023-01-16'),
+        upvotes: 3,
+        downvotes: 0,
+        voters: {},
+        isApproved: true
       },
       {
         id: 'c2',
         text: 'My grandmother always used to say this!',
         userId: 'user456',
         userName: 'Mark',
-        createdAt: new Date('2023-01-18')
+        createdAt: new Date('2023-01-18'),
+        upvotes: 5,
+        downvotes: 1,
+        voters: {},
+        isApproved: true
       }
     ]
   },

@@ -55,6 +55,7 @@ export default function AdminScreen() {
     updateLessonText,
     addLesson,
     deleteLesson,
+    approveComment,
   } = useLessons();
 
   const router = useRouter();
@@ -63,7 +64,32 @@ export default function AdminScreen() {
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
 
+  // State to track which tab is active
+  const [activeTab, setActiveTab] = useState<'wisdoms' | 'comments'>('wisdoms');
+
   const allLessons = getAllLessons();
+  
+  // Get all pending comments across all lessons
+  const pendingComments = allLessons.flatMap(lesson => {
+    const comments = lesson.comments || [];
+    return comments
+      .filter(comment => !comment.isApproved)
+      .map(comment => ({
+        ...comment,
+        lessonId: lesson.id,
+        lessonTitle: lesson.lesson
+      }));
+  });
+
+  // Filter comments by search query if needed
+  const filteredComments = searchQuery.trim().length === 0
+    ? pendingComments
+    : pendingComments.filter(comment => 
+        comment.text.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        comment.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        comment.lessonTitle.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+
   // Show only unapproved wisdom by default
   const visibleLessons = searchQuery.trim().length === 0
     ? allLessons.filter(
@@ -189,28 +215,164 @@ export default function AdminScreen() {
             )}
           </View>
 
-          {filtered.length === 0 && searchQuery.length > 0 ? (
-            <Text style={textStyles.body}>No matches found.</Text>
-          ) : filtered.length > 0 && (
-            filtered.map((lesson) => (
-              <View key={lesson.id} style={styles.card}>
-                <Text style={{ fontSize: 16, fontWeight: '400', color: '#222' }}>{lesson.lesson}</Text>
-                <View style={{ flexDirection: 'row', marginTop: 8, justifyContent: 'flex-end', alignItems: 'center' }}>
-                  {!lesson.isApproved && (
-                    <TouchableOpacity onPress={() => approveLesson(lesson.id)} style={{ marginRight: 16 }}>
-                      <Ionicons name="checkmark-circle-outline" size={24} color="#4caf50" />
-                    </TouchableOpacity>
-                  )}
-                  <TouchableOpacity onPress={() => startEditing(lesson)} style={{ marginRight: 16 }}>
-                    <Ionicons name="pencil-outline" size={24} color="#007aff" />
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => deleteLesson(lesson.id)}>
-                    <Ionicons name="trash-outline" size={24} color="#ff3b30" />
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ))
-          )}
+          <View style={styles.tabs}>
+            <TouchableOpacity
+              style={[styles.tab, activeTab === 'wisdoms' && styles.activeTab]}
+              onPress={() => setActiveTab('wisdoms')}
+            >
+              <Text style={styles.tabText}>Pending Wisdoms</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.tab, activeTab === 'comments' && styles.activeTab]}
+              onPress={() => setActiveTab('comments')}
+            >
+              <Text style={styles.tabText}>Pending Comments</Text>
+            </TouchableOpacity>
+          </View>
+
+          <TextInput
+            style={styles.searchBox}
+            placeholder={activeTab === 'wisdoms' ? "Search all wisdom" : "Search pending comments"}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+
+          <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.contentContainer}>
+            {activeTab === 'wisdoms' ? (
+              <>
+                <Text style={styles.listHeader}>
+                  Pending Wisdom Approval ({filtered.length})
+                </Text>
+
+                {filtered.length > 0 ? (
+                  filtered.map((item, idx) => (
+                    <View key={item.id} style={styles.card}>
+                      <View style={styles.cardTop}>
+                        <Text style={styles.cardTitle}>
+                          {item.lesson}
+                        </Text>
+                        <Text style={styles.cardMeta}>
+                          {new Date(item.createdAt).toLocaleDateString()} - {item.userName}
+                        </Text>
+                      </View>
+
+                      <View style={styles.cardBottom}>
+                        <View style={styles.actions}>
+                          <TouchableOpacity
+                            style={styles.standardButton}
+                            onPress={() => {
+                              approveLesson(item.id);
+                              notifySuccess('Approved and moved to main page');
+                            }}
+                          >
+                            <Text style={styles.standardButtonText}>Approve</Text>
+                          </TouchableOpacity>
+                          
+                          <TouchableOpacity
+                            style={styles.standardButton}
+                            onPress={() => startEditing(item)}
+                          >
+                            <Text style={styles.standardButtonText}>Edit</Text>
+                          </TouchableOpacity>
+
+                          <TouchableOpacity
+                            style={styles.standardButton}
+                            onPress={() => {
+                              Alert.alert(
+                                'Delete Wisdom',
+                                'Are you sure you want to delete this? This cannot be undone.',
+                                [
+                                  { text: 'Cancel' },
+                                  {
+                                    text: 'Delete',
+                                    style: 'destructive',
+                                    onPress: () => {
+                                      deleteLesson(item.id);
+                                      notifySuccess('Wisdom deleted');
+                                    },
+                                  },
+                                ]
+                              );
+                            }}
+                          >
+                            <Text style={styles.standardButtonText}>Delete</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    </View>
+                  ))
+                ) : searchQuery ? (
+                  <Text style={styles.emptyText}>No matching wisdom found.</Text>
+                ) : (
+                  <Text style={styles.emptyText}>No pending submissions.</Text>
+                )}
+              </>
+            ) : (
+              <>
+                <Text style={styles.listHeader}>
+                  Pending Comment Approval ({filteredComments.length})
+                </Text>
+
+                {filteredComments.length > 0 ? (
+                  filteredComments.map((comment) => (
+                    <View key={comment.id} style={styles.card}>
+                      <View style={styles.cardTop}>
+                        <Text style={styles.commentText}>{comment.text}</Text>
+                        <Text style={styles.cardMeta}>
+                          {new Date(comment.createdAt).toLocaleDateString()} - {comment.userName}
+                        </Text>
+                        <Text style={styles.commentLessonLink}>
+                          On: "{comment.lessonTitle.substring(0, 40)}{comment.lessonTitle.length > 40 ? '...' : ''}"
+                        </Text>
+                      </View>
+
+                      <View style={styles.cardBottom}>
+                        <View style={styles.actions}>
+                          <TouchableOpacity
+                            style={styles.standardButton}
+                            onPress={() => {
+                              approveComment(comment.lessonId, comment.id);
+                              notifySuccess('Comment approved');
+                            }}
+                          >
+                            <Text style={styles.standardButtonText}>Approve</Text>
+                          </TouchableOpacity>
+
+                          <TouchableOpacity
+                            style={styles.standardButton}
+                            onPress={() => {
+                              Alert.alert(
+                                'Delete Comment',
+                                'Are you sure you want to delete this comment? This cannot be undone.',
+                                [
+                                  { text: 'Cancel' },
+                                  {
+                                    text: 'Delete',
+                                    style: 'destructive',
+                                    onPress: () => {
+                                      // Call deleteComment from lessonStore
+                                      useLessons.getState().deleteComment(comment.lessonId, comment.id);
+                                      notifySuccess('Comment deleted');
+                                    },
+                                  },
+                                ]
+                              );
+                            }}
+                          >
+                            <Text style={styles.standardButtonText}>Delete</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    </View>
+                  ))
+                ) : searchQuery ? (
+                  <Text style={styles.emptyText}>No matching comments found.</Text>
+                ) : (
+                  <Text style={styles.emptyText}>No pending comments.</Text>
+                )}
+              </>
+            )}
+          </ScrollView>
         </ScrollView>
         
         <View style={styles.bottomButtons}>
@@ -271,6 +433,84 @@ export default function AdminScreen() {
 }
 
 const styles = StyleSheet.create({
+  tabs: {
+    flexDirection: 'row',
+    marginBottom: 16,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  activeTab: {
+    borderBottomWidth: 2,
+    borderBottomColor: '#007aff',
+  },
+  tabText: {
+    fontSize: 16,
+  },
+  commentText: {
+    fontSize: 16,
+    marginBottom: 8,
+  },
+  commentLessonLink: {
+    fontSize: 14,
+    color: '#555',
+    fontStyle: 'italic',
+    marginTop: 4,
+  },
+  // Fix TypeScript errors by adding missing style definitions
+  searchBox: {
+    height: 40, 
+    borderWidth: 1, 
+    borderColor: '#ccc',
+    borderRadius: 8,
+    padding: 8,
+    marginBottom: 16,
+  },
+  scrollContainer: {
+    flex: 1,
+  },
+  contentContainer: {
+    paddingBottom: 16,
+  },
+  listHeader: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 16,
+  },
+  card: {
+    backgroundColor: '#f9f9f9',
+    borderRadius: 8,
+    padding: 8,
+    marginBottom: 12,
+  },
+  cardTop: {
+    marginBottom: 8,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  cardMeta: {
+    fontSize: 12,
+    color: '#777',
+  },
+  cardBottom: {
+    marginTop: 8,
+  },
+  actions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    gap: 8,
+  },
+  emptyText: {
+    fontSize: 16,
+    textAlign: 'center',
+    color: '#888',
+    marginTop: 16,
+  },
   button: {
     paddingVertical: 4,
     paddingHorizontal: 12,
@@ -365,15 +605,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginBottom: 20,
   },
-  card: {
-    backgroundColor: '#f9f9f9',
-    borderRadius: 8,
-    padding: 14,
-    marginBottom: 14,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 1,
-  },
+  // Card style is defined above
 });
