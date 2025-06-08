@@ -434,9 +434,9 @@ export default function AdminScreen() {
 const styles = StyleSheet.create({
   buttonGroup: {
     flexDirection: 'column',
-    marginBottom: 16,
+    marginTop: 16,
     width: '100%',
-    gap: 8,
+    gap: 16,
   },
   tabButton: {
     backgroundColor: '#f5f5f5',
