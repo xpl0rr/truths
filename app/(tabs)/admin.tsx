@@ -156,6 +156,10 @@ export default function AdminScreen() {
           <View style={{ alignItems: 'center' }}>
             <Text style={textStyles.title}>Admin</Text>
           </View>
+
+          <TouchableOpacity onPress={() => setShowAddModal(true)} style={{marginTop: 20}}>
+            <Text style={{ fontSize: 16, fontWeight: 'normal', color: '#000', textAlign: 'center', marginVertical: 6 }}>+ Add Your Wisdom</Text>
+          </TouchableOpacity>
           
           <View style={styles.backupSection}>
             <Text style={styles.sectionTitle}>Data Backup & Restore</Text>
@@ -237,9 +241,7 @@ export default function AdminScreen() {
           )}
         </ScrollView>
       </View>
-      <TouchableOpacity onPress={() => setShowAddModal(true)}>
-        <Text style={{ fontSize: 14, fontWeight: '500', color: '#000', textAlign: 'center', marginVertical: 6 }}>+ Add Your Wisdom</Text>
-      </TouchableOpacity>
+
       <AddWisdomModal
         visible={showAddModal}
         onClose={() => setShowAddModal(false)}
