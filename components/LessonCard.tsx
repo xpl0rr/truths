@@ -51,7 +51,7 @@ const LessonCard = ({ lesson, userId, onVote, onSelect }: Props) => {
           >
             <AntDesign
               name="arrowup"
-              size={16}
+              size={20}
               color={isUpvoted ? 'green' : '#ccc'}
               style={styles.voteIcon}
             />
@@ -64,7 +64,7 @@ const LessonCard = ({ lesson, userId, onVote, onSelect }: Props) => {
           >
             <AntDesign
               name="arrowdown"
-              size={16}
+              size={20}
               color={isDownvoted ? 'red' : '#ccc'}
               style={styles.voteIcon}
             />

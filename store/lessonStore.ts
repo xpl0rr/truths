@@ -80,13 +80,27 @@ export const useLessons = create<LessonStore>()(
         set((state) => ({
           lessons: state.lessons.map((l) => {
             if (l.id !== lessonId) return l;
+            
+            // Update voters object
             const updatedVoters = { ...l.voters };
+            const previousVote = updatedVoters[userId];
+            
             if (voteType === null) {
               delete updatedVoters[userId];
             } else {
               updatedVoters[userId] = voteType;
             }
-            return { ...l, voters: updatedVoters };
+            
+            // Recalculate upvotes and downvotes based on voters
+            const upvotes = Object.values(updatedVoters).filter(vote => vote === 'up').length;
+            const downvotes = Object.values(updatedVoters).filter(vote => vote === 'down').length;
+            
+            return { 
+              ...l, 
+              voters: updatedVoters,
+              upvotes,
+              downvotes
+            };
           }),
         }));
       },
