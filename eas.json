@@ -21,6 +21,17 @@
       "autoIncrement": true,
       "channel": "main"
     },
+    "release": {
+      "distribution": "store",
+      "autoIncrement": true,
+      "channel": "main",
+      "ios": {
+        "buildConfiguration": "Release"
+      },
+      "android": {
+        "buildType": "aab"
+      }
+    },
     "offline": {
       "developmentClient": false,
       "distribution": "internal",
