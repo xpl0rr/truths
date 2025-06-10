@@ -1,51 +1,41 @@
-// app.config.js
+// app.config.js  — FINAL VERSION
 import 'dotenv/config';
 
 export default ({ config }) => ({
-  /* inherit Expo defaults */
   ...config,
 
-  /* ── basic app info ───────────────────────── */
+  /* ── basic ───────────────────────────── */
   name: 'Wisdom',
-  slug: 'wisdom',          // keep slug in sync with name
+  slug: 'wisdom',
   version: '1.0.0',
   orientation: 'portrait',
   scheme: 'wisdom',
   userInterfaceStyle: 'light',
   icon: './assets/icon.png',
 
-  /* ── EAS project & env vars ──────────────── */
+  /* ── EAS + env ───────────────────────── */
   extra: {
     ...(config.extra || {}),
     eas: { projectId: '4137856e-1f8e-436a-8b2f-3e0fb7f94b4a' },
-    // add any other env vars here, e.g. API keys
   },
 
-  /* ── iOS settings ────────────────────────── */
+  /* ── iOS ─────────────────────────────── */
   ios: {
     ...config.ios,
-    bundleIdentifier: 'com.doug.wisdom',  // <— unique per-app!
+    bundleIdentifier: 'com.doug.wisdom',   // **MUST be unique**
     supportsTablet: true,
-    buildNumber: '2',                     // bump when you rebuild
+    buildNumber: '1',                      // bump on every store upload
   },
 
-  /* ── Android settings ───────────────────── */
+  /* ── Android ─────────────────────────── */
   android: {
     ...config.android,
     package: 'com.doug.wisdom',
   },
 
-  /* ── runtime & updates ───────────────────── */
+  /* ── runtime & updates ───────────────── */
   runtimeVersion: '1.0.0',
+  updates: { enabled: false },             // no OTA for now
 
-  // Disable OTA for a true, Metro-free release build.
-  // Flip `enabled` back to true (and set a channel)
-  // when you’re ready to use EAS Update.
-  updates: {
-    enabled: false,
-    fallbackToCacheTimeout: 0,
-  },
-
-  /* ── owner (for EAS services) ────────────── */
   owner: 'xplorr',
 });

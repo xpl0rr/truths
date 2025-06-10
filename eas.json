@@ -9,7 +9,9 @@
       "distribution": "internal",
       "autoIncrement": true,
       "channel": "main",
-      "ios": { "buildConfiguration": "Debug" }
+      "ios": {
+        "buildConfiguration": "Debug"
+      }
     },
     "preview": {
       "distribution": "internal",
@@ -20,11 +22,17 @@
       "channel": "main"
     },
     "offline": {
+      "developmentClient": false,
       "distribution": "internal",
-      "android": { "buildType": "apk" },
-      "ios": { "buildConfiguration": "Release" },
       "autoIncrement": true,
-      "channel": "offline"
+      "channel": "offline",
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "buildConfiguration": "Release",
+        "simulator": false
+      }
     }
   },
   "submit": {
