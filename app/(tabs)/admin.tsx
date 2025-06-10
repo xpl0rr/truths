@@ -42,7 +42,8 @@ function DebugLessons() {
   return null;
 }
 
-export default function AdminScreen() {
+// Make sure the component is explicitly named for Expo Router
+export default function Admin() {
   // Debug: show AsyncStorage contents in console
   DebugLessons();
   

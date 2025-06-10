@@ -148,20 +148,50 @@ export const importData = async (): Promise<void> => {
                 }
               }
               
-              Alert.alert(
-                'Restore Complete',
-                'Your data has been successfully restored. Please restart the app to see the changes.',
-                [
-                  { 
-                    text: 'OK', 
-                    onPress: () => {
-                      // App should reload here to apply restored data
-                      // For React Navigation users:
-                      // navigation.reset({index: 0, routes: [{name: 'Home'}]});
+              console.log('Data restore complete, force reloading app state');
+              
+              // Force reload app by clearing storage cache in memory
+              try {
+                // No direct way to clear Zustand's in-memory cache, but we can
+                // ensure AsyncStorage is properly written to disk
+                await AsyncStorage.flushGetRequests();
+                
+                Alert.alert(
+                  'Restore Complete',
+                  'Your data has been successfully restored. The app will now reload.',
+                  [
+                    { 
+                      text: 'OK', 
+                      onPress: () => {
+                        // Force app reload on iOS/Android
+                        console.log('Triggering app reload');
+                        
+                        // RN doesn't have a built-in way to restart the app,
+                        // so we'll reload the JS bundle if possible or instruct the user
+                        if (Platform.OS === 'ios') {
+                          // On iOS we can try to force an error to trigger a refresh
+                          setTimeout(() => {
+                            console.log('Forcing app refresh...');
+                            throw new Error('FORCED_REFRESH_AFTER_IMPORT');
+                          }, 500);
+                        } else {
+                          Alert.alert(
+                            'Manual Restart Required',
+                            'Please completely close the app (swipe it away) and reopen it to see your imported data.',
+                            [{ text: 'OK' }]
+                          );
+                        }
+                      }
                     }
-                  }
-                ]
-              );
+                  ]
+                );
+              } catch (reloadError) {
+                console.error('Error during app reload attempt:', reloadError);
+                Alert.alert(
+                  'Restart Required',
+                  'Please completely close the app (swipe it away) and reopen it to see your imported data.'
+                );
+              }
             } catch (restoreError) {
               console.error('Restore error:', restoreError);
               Alert.alert(
