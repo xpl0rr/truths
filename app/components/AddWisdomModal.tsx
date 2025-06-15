@@ -38,12 +38,19 @@ export default function AddWisdomModal({ visible, onClose, onSubmit }: AddWisdom
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="fullScreen">
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <SafeAreaView style={styles.container}>
-          <View style={styles.inputs}>
+      <SafeAreaView style={styles.container}>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={30} // Adjusted to 30, may need further tuning
+        >
+          {/* This inner View is KAV's direct child and helps manage layout */}
+          <ScrollView // NEW outer ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={{ /* flexGrow: 1 removed */ }}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={{ flex: 1, padding: 16 }}> {/* Inner content wrapper, flex:1 removed, padding retained */}
             <TextInput
               style={styles.titleInput}
               value={lesson}
@@ -53,39 +60,39 @@ export default function AddWisdomModal({ visible, onClose, onSubmit }: AddWisdom
               multiline
               numberOfLines={2}
             />
-            <ScrollView style={styles.anecdoteContainer}>
-              <TextInput
-                style={styles.anecdoteInput}
-                value={anecdote}
-                onChangeText={setAnecdote}
-                placeholder="Anecdote (optional)"
-                placeholderTextColor="#aaa"
-                multiline
-                textAlignVertical="top"
-              />
-            </ScrollView>
-          </View>
-          <View style={styles.buttonRow}>
-            <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close-circle-outline" size={36} color="#777" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={handleSave} disabled={!lesson.trim()}>
-              <Ionicons
-                name="checkmark-circle-outline"
-                size={36}
-                color={lesson.trim() ? '#007aff' : '#ccc'}
-              />
-            </TouchableOpacity>
-          </View>
-        </SafeAreaView>
-      </KeyboardAvoidingView>
+            <TextInput
+              style={styles.anecdoteInput} // This style has flex:1 and minHeight
+              value={anecdote}
+              onChangeText={setAnecdote}
+              placeholder="Anecdote (optional)"
+              placeholderTextColor="#aaa"
+              multiline
+              textAlignVertical="top"
+            />
+            <View style={styles.buttonRow}>
+              <TouchableOpacity onPress={onClose}>
+                <Ionicons name="close-circle-outline" size={36} color="#777" />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleSave} disabled={!lesson.trim()}>
+                <Ionicons
+                  name="checkmark-circle-outline"
+                  size={36}
+                  color={lesson.trim() ? '#007aff' : '#ccc'}
+                />
+              </TouchableOpacity>
+            </View> {/* Closes buttonRow */}
+          </View> {/* Closes the View with style={{ padding: 16 }} */}
+        </ScrollView> {/* Closing NEW outer ScrollView */}
+        </KeyboardAvoidingView>
+      </SafeAreaView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-  inputs: { flex: 1, padding: 16 },
+  // inputs: { flex: 1, padding: 16 }, // Removed as its role is absorbed by KAV's inner view and ScrollView
+
   titleInput: {
     height: 64,
     borderWidth: 1,
@@ -96,17 +103,17 @@ const styles = StyleSheet.create({
     fontSize: 18,
     backgroundColor: '#fafafa',
   },
-  anecdoteContainer: { flex: 1 },
+  // anecdoteContainer: { /* flex: 1 removed */ }, // Style removed as component is removed
   anecdoteInput: {
-    // flex: 1, // Removed to allow natural sizing within ScrollView
+    // flex: 1, // Removed: Let TextInput size naturally with content and minHeight
     fontSize: 16,
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 8,
     padding: 12,
     backgroundColor: '#fafafa',
-    minHeight: 100, // Ensure a reasonable minimum height
-    // textAlignVertical: 'top' is already set on the TextInput component itself
+    minHeight: 100, // Keep for a decent initial size
+    // textAlignVertical: 'top' is set on the component itself, which is good
   },
   buttonRow: {
     flexDirection: 'row',
