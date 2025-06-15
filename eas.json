@@ -22,6 +22,7 @@
       "channel": "main"
     },
     "release": {
+      "developmentClient": false,
       "distribution": "store",
       "autoIncrement": true,
       "channel": "main",
@@ -29,7 +30,7 @@
         "buildConfiguration": "Release"
       },
       "android": {
-        "buildType": "aab"
+        "buildType": "app-bundle"
       }
     },
     "offline": {

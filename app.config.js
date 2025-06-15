@@ -16,7 +16,7 @@ export default ({ config }) => ({
   /* ── EAS + env ───────────────────────── */
   extra: {
     ...(config.extra || {}),
-    eas: { projectId: '4137856e-1f8e-436a-8b2f-3e0fb7f94b4a' },
+    eas: { projectId: 'a6dc726c-27ab-4bcf-93df-db549bb78519' },
   },
 
   /* ── iOS ─────────────────────────────── */
