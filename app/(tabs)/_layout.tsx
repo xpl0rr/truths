@@ -17,7 +17,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Truths',
+          title: 'Wisdoms',
           tabBarIcon: ({ color, size }: TabBarIconProps) => (
             <Ionicons name="chatbubble-ellipses-outline" size={size} color={color} />
           ),
