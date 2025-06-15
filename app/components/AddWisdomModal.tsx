@@ -98,13 +98,15 @@ const styles = StyleSheet.create({
   },
   anecdoteContainer: { flex: 1 },
   anecdoteInput: {
-    flex: 1,
+    // flex: 1, // Removed to allow natural sizing within ScrollView
     fontSize: 16,
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 8,
     padding: 12,
     backgroundColor: '#fafafa',
+    minHeight: 100, // Ensure a reasonable minimum height
+    // textAlignVertical: 'top' is already set on the TextInput component itself
   },
   buttonRow: {
     flexDirection: 'row',
