@@ -39,21 +39,63 @@ export const exportData = async (): Promise<void> => {
     // Convert to JSON string
     const jsonData = JSON.stringify(backupData, null, 2);
     
-    // Create filename with date
-    const date = new Date();
-    const dateString = date.toISOString().split('T')[0]; // Format as YYYY-MM-DD
-    const fileName = `wisdom_backup_${dateString}.json`;
+    // Use consistent filename to allow overwriting
+    const fileName = 'wisdom_backup.json';
     
     // Use a more reliable location - the cache directory
     const filePath = FileSystem.cacheDirectory + fileName;
     
-    // Write the backup data to the file
-    await FileSystem.writeAsStringAsync(filePath, jsonData, {
-      encoding: FileSystem.EncodingType.UTF8
-    });
+    // Check if file exists before writing
+    let fileInfo = await FileSystem.getInfoAsync(filePath);
+    
+    if (fileInfo.exists) {
+      // File exists, ask if user wants to overwrite
+      try {
+        await new Promise((resolve, reject) => {
+          Alert.alert(
+            'File Exists',
+            'A backup file already exists. Do you want to overwrite it?',
+            [
+              { 
+                text: 'Cancel', 
+                style: 'cancel',
+                onPress: () => reject(new Error('User cancelled overwrite'))
+              },
+              { 
+                text: 'Overwrite', 
+                style: 'destructive',
+                onPress: async () => {
+                  try {
+                    // Write the backup data to the file
+                    await FileSystem.writeAsStringAsync(filePath, jsonData, {
+                      encoding: FileSystem.EncodingType.UTF8
+                    });
+                    resolve(undefined);
+                  } catch (error) {
+                    reject(error);
+                  }
+                }
+              }
+            ]
+          );
+        });
+      } catch (error) {
+        if (error instanceof Error && error.message === 'User cancelled overwrite') {
+          console.log('User cancelled overwrite, exiting export function');
+          return; // Exit the function early
+        }
+        // Re-throw other errors
+        throw error;
+      }
+    } else {
+      // File doesn't exist, write directly
+      await FileSystem.writeAsStringAsync(filePath, jsonData, {
+        encoding: FileSystem.EncodingType.UTF8
+      });
+    }
     
     // Make sure the file exists before sharing
-    const fileInfo = await FileSystem.getInfoAsync(filePath);
+    fileInfo = await FileSystem.getInfoAsync(filePath);
     if (!fileInfo.exists) {
       throw new Error('Failed to create backup file');
     }
