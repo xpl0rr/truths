@@ -30,12 +30,12 @@
         "buildConfiguration": "Release"
       },
       "android": {
-        "buildType": "app-bundle" // ← fixed
+        "buildType": "app-bundle"
       }
     },
     "offline": {
       "developmentClient": false,
-      "distribution": "internal", // ← ad hoc signing
+      "distribution": "internal",
       "autoIncrement": true,
       "channel": "offline",
       "android": {
@@ -43,7 +43,7 @@
       },
       "ios": {
         "buildConfiguration": "Release",
-        "simulator": false // ← allows physical install
+        "simulator": false
       }
     }
   },
