@@ -1,5 +1,16 @@
 import React, { useState } from 'react';
-import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import {
+  Modal,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Platform,
+  Keyboard,
+  SafeAreaView, // Added
+} from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'; // Added
 
 import type { Lesson } from '../src/models/Lesson';
 
@@ -15,13 +26,26 @@ export default function FullScreenEditLesson({
   lesson,
   onSave,
   onClose,
-}: Props) {
+}: Props): JSX.Element {
   const [title, setTitle] = useState(lesson.lesson || '');
   const [anecdote, setAnecdote] = useState(lesson.anecdote || '');
 
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="fullScreen">
-      <View style={styles.container}>
+    <Modal visible={visible} animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose}>
+      <SafeAreaView style={styles.safeAreaContainer}>
+        <KeyboardAwareScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={styles.scrollContentContainer} // Use a specific style for content
+          keyboardShouldPersistTaps="handled"
+          enableOnAndroid={true}
+          extraScrollHeight={Platform.OS === 'ios' ? 50 : 0}
+          enableAutomaticScroll={true}
+          keyboardDismissMode="on-drag"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Original content starts here, but styles.container might need adjustment */}
+          {/* We'll use a new inner container for padding if styles.container had flex properties */}
+          <View style={styles.innerContainer}>
         <TextInput
           style={styles.title}
           value={title}
@@ -34,6 +58,9 @@ export default function FullScreenEditLesson({
           onChangeText={setAnecdote}
           placeholder="Anecdote"
           multiline
+          returnKeyType="done"
+          blurOnSubmit={true}
+          onSubmitEditing={Keyboard.dismiss}
         />
         <View style={styles.buttonRow}>
           <TouchableOpacity style={styles.button} onPress={() => onSave(title, anecdote)}>
@@ -42,20 +69,38 @@ export default function FullScreenEditLesson({
           <TouchableOpacity style={[styles.button, styles.closeButton]} onPress={onClose}>
             <Text style={styles.buttonText}>Close</Text>
           </TouchableOpacity>
+          </View>
         </View>
-      </View>
+        </KeyboardAwareScrollView>
+      </SafeAreaView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeAreaContainer: {
     flex: 1,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
+    backgroundColor: '#fff', // Or your modal's background color
   },
+  scrollContentContainer: {
+    flexGrow: 1, // Important for KASV to allow content to expand
+    // justifyContent: 'center', // Remove if content should start at top
+  },
+  innerContainer: { // New container for original content padding and alignment
+    padding: 24,
+    flex: 1, // Allow inner content to take space, but be careful with KASV
+    // alignItems: 'center', // Keep if needed, or manage alignment within
+    // justifyContent: 'center', // Remove if content should start at top
+  },
+  // Original styles.container might be redundant or need to be merged into innerContainer
+  // container: {
+  //   flex: 1,
+  //   backgroundColor: '#fff',
+  //   justifyContent: 'center',
+  //   alignItems: 'center',
+  //   padding: 24,
+  // },
+
   title: {
     fontSize: 20,
     fontWeight: 'bold',
@@ -66,6 +111,8 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   anecdote: {
+    // Ensure multiline input can grow but also scroll within KASV
+    // minHeight is good, avoid fixed height if possible, let KASV handle scroll
     fontSize: 16,
     width: '100%',
     minHeight: 120,
@@ -83,18 +130,19 @@ const styles = StyleSheet.create({
   },
   button: {
     flex: 1,
-    backgroundColor: '#333',
-    padding: 14,
-    borderRadius: 8,
+    backgroundColor: '#f5f5f5', // Standard background
+    paddingVertical: 8,      // Standard padding
+    paddingHorizontal: 12,   // Standard padding
+    borderRadius: 8,         // Standard radius
     marginHorizontal: 8,
     alignItems: 'center',
   },
   closeButton: {
-    backgroundColor: '#aaa',
+    backgroundColor: '#e0e0e0', // Slightly different gray for secondary action, or use #f5f5f5
   },
   buttonText: {
-    color: '#fff',
-    fontWeight: '600',
+    color: '#000',          // Standard text color
+    fontWeight: 'normal',    // Standard font weight
     fontSize: 16,
   },
 });

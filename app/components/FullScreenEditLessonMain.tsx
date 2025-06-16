@@ -43,12 +43,14 @@ export default function FullScreenEditLessonMain({ visible, lesson, onSave, onCl
         <SafeAreaView style={[styles.fullScreenContainer, { paddingTop: insets.top }]}>
           <KeyboardAwareScrollView
             style={{ flex: 1 }}
-            contentContainerStyle={{ flexGrow: 1 }}
+            contentContainerStyle={{ flexGrow: 1 }} // Restored
             keyboardShouldPersistTaps="handled"
             enableOnAndroid={true}
-            extraScrollHeight={Platform.OS === 'ios' ? 75 : 0} // Adjusted for potentially better scrolling
+            extraScrollHeight={Platform.OS === 'ios' ? 50 : 0} // Moderate extra scroll height
             enableAutomaticScroll={true}
             showsVerticalScrollIndicator={true} // For debugging
+            keyboardDismissMode="on-drag" // Changed to 'on-drag'
+            automaticallyAdjustContentInsets={false} // iOS only: prevent conflict with SafeAreaView
           >
             <TextInput
               style={[styles.titleInput, { minHeight: 44 }]}
@@ -66,12 +68,13 @@ export default function FullScreenEditLessonMain({ visible, lesson, onSave, onCl
               style={[textStyles.body, styles.anecdoteInput]} // Ensure styles.anecdoteInput has NO flex:1 and NO maxHeight
               value={anecdote}
               onChangeText={setAnecdote}
-              placeholder="The anecdote is not optional"
+              placeholder="The anecdote is not optional --- EDITING BANNER HERE --- "
               placeholderTextColor="#aaa"
               multiline
               textAlignVertical="top"
               returnKeyType="done"
-              blurOnSubmit={true}
+              blurOnSubmit={true} // Should work
+              onSubmitEditing={Keyboard.dismiss} // Explicit dismiss on submit
             />
             <View style={[styles.buttonRowContainer, { paddingBottom: keyboardOpen ? 0 : insets.bottom }]}>
               <View style={styles.buttonRow}>
@@ -107,7 +110,7 @@ const styles = StyleSheet.create({
     borderColor: '#e0e0e0',
   },
   anecdoteInput: {
-    // Ensure NO flex: 1 here
+    // flex: 1, // Removed; let content and minHeight dictate size
     // Ensure NO maxHeight here
     marginBottom: 6,
     backgroundColor: '#fafafa',
