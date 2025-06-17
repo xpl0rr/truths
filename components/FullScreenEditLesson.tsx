@@ -43,6 +43,7 @@ export default function FullScreenEditLesson({
           keyboardDismissMode="on-drag"
           showsVerticalScrollIndicator={false}
         >
+          <Text style={styles.bannerText}>Editing: components/FullScreenEditLesson.tsx</Text>
           {/* Original content starts here, but styles.container might need adjustment */}
           {/* We'll use a new inner container for padding if styles.container had flex properties */}
           <View style={styles.innerContainer}>
@@ -88,7 +89,7 @@ const styles = StyleSheet.create({
   },
   innerContainer: { // New container for original content padding and alignment
     padding: 24,
-    flex: 1, // Allow inner content to take space, but be careful with KASV
+    // flex: 1, // Removed: Let content determine height, KASV's contentContainerStyle handles flexGrow
     // alignItems: 'center', // Keep if needed, or manage alignment within
     // justifyContent: 'center', // Remove if content should start at top
   },
@@ -116,6 +117,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     width: '100%',
     minHeight: 120,
+    maxHeight: 200, // Added to make the anecdote field scroll internally
     borderWidth: 1,
     borderColor: '#eee',
     borderRadius: 8,
@@ -144,5 +146,13 @@ const styles = StyleSheet.create({
     color: '#000',          // Standard text color
     fontWeight: 'normal',    // Standard font weight
     fontSize: 16,
+  },
+  bannerText: {
+    textAlign: 'center',
+    backgroundColor: 'yellow',
+    color: 'black',
+    paddingVertical: 5,
+    fontWeight: 'bold',
+    fontSize: 12,
   },
 });

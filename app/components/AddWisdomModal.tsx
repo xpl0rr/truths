@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
+  Text,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import textStyles from '../styles/textStyles';
@@ -50,7 +51,7 @@ export default function AddWisdomModal({ visible, onClose, onSubmit }: AddWisdom
             contentContainerStyle={{ /* flexGrow: 1 removed */ }}
             keyboardShouldPersistTaps="handled"
           >
-            <View style={{ flex: 1, padding: 16 }}> {/* Inner content wrapper, flex:1 removed, padding retained */}
+            <View style={{ padding: 16 }}> {/* Inner content wrapper, flex:1 removed, padding retained */}
             <TextInput
               style={styles.titleInput}
               value={lesson}
@@ -113,6 +114,7 @@ const styles = StyleSheet.create({
     padding: 12,
     backgroundColor: '#fafafa',
     minHeight: 100, // Keep for a decent initial size
+    maxHeight: 200, // Added to make the anecdote field scroll internally
     // textAlignVertical: 'top' is set on the component itself, which is good
   },
   buttonRow: {
