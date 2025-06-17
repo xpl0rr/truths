@@ -29,6 +29,7 @@ export default function FullScreenEditLesson({
 }: Props): JSX.Element {
   const [title, setTitle] = useState(lesson.lesson || '');
   const [anecdote, setAnecdote] = useState(lesson.anecdote || '');
+  const [titleHeight, setTitleHeight] = useState<number | undefined>(undefined);
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose}>
@@ -43,15 +44,16 @@ export default function FullScreenEditLesson({
           keyboardDismissMode="on-drag"
           showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.bannerText}>Editing: components/FullScreenEditLesson.tsx</Text>
           {/* Original content starts here, but styles.container might need adjustment */}
           {/* We'll use a new inner container for padding if styles.container had flex properties */}
           <View style={styles.innerContainer}>
         <TextInput
-          style={styles.title}
+          style={[styles.title, titleHeight ? { height: titleHeight } : {}]}
           value={title}
           onChangeText={setTitle}
           placeholder="Title"
+          multiline
+          onContentSizeChange={(e) => setTitleHeight(e.nativeEvent.contentSize.height)}
         />
         <TextInput
           style={styles.anecdote}
@@ -89,7 +91,7 @@ const styles = StyleSheet.create({
   },
   innerContainer: { // New container for original content padding and alignment
     padding: 24,
-    // flex: 1, // Removed: Let content determine height, KASV's contentContainerStyle handles flexGrow
+    flex: 1, // Re-add flex: 1 to allow inner content to expand
     // alignItems: 'center', // Keep if needed, or manage alignment within
     // justifyContent: 'center', // Remove if content should start at top
   },
@@ -103,21 +105,19 @@ const styles = StyleSheet.create({
   // },
 
   title: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: 'normal',
+    color: '#333',
     marginBottom: 16,
     width: '100%',
-    borderBottomWidth: 1,
-    borderColor: '#ccc',
-    paddingVertical: 8,
+    // Height is now managed dynamically, so paddingVertical and lineHeight are removed to avoid conflicts.
   },
   anecdote: {
-    // Ensure multiline input can grow but also scroll within KASV
-    // minHeight is good, avoid fixed height if possible, let KASV handle scroll
+    flex: 1, // Allow anecdote to fill available space
     fontSize: 16,
+    lineHeight: 24, // Match lesson view screen
+    color: '#333', // Match lesson view screen
     width: '100%',
-    minHeight: 120,
-    maxHeight: 200, // Added to make the anecdote field scroll internally
     borderWidth: 1,
     borderColor: '#eee',
     borderRadius: 8,
@@ -146,13 +146,5 @@ const styles = StyleSheet.create({
     color: '#000',          // Standard text color
     fontWeight: 'normal',    // Standard font weight
     fontSize: 16,
-  },
-  bannerText: {
-    textAlign: 'center',
-    backgroundColor: 'yellow',
-    color: 'black',
-    paddingVertical: 5,
-    fontWeight: 'bold',
-    fontSize: 12,
   },
 });

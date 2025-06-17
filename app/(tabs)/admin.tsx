@@ -176,6 +176,17 @@ export default function Admin() {
     }
   };
 
+  if (editingLesson) {
+    return (
+      <FullScreenEditLesson
+        visible={true} // Modal is visible when editingLesson is not null
+        lesson={editingLesson}
+        onSave={handleSaveEdit}
+        onClose={handleCloseEdit}
+      />
+    );
+  }
+
   return (
     <SafeAreaView style={[styles.safe, { flex: 1, position: 'relative' }]}> 
       <View style={{ flex: 1 }}>
