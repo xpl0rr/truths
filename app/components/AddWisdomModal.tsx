@@ -44,7 +44,7 @@ export default function AddWisdomModal({ visible, onClose, onSubmit }: AddWisdom
           contentContainerStyle={{ flexGrow: 1 }} // KASV content can grow
           keyboardShouldPersistTaps="handled"
           enableOnAndroid={true}
-          extraHeight={75} // Added for potential layout calculation issues
+          // extraHeight={75} // Removed
           extraScrollHeight={Platform.OS === 'ios' ? 50 : 0}
           enableAutomaticScroll={true}
           keyboardDismissMode="on-drag"
@@ -70,11 +70,15 @@ export default function AddWisdomModal({ visible, onClose, onSubmit }: AddWisdom
               textAlignVertical="top"
             />
             <View style={styles.buttonRow}>
-              <TouchableOpacity onPress={onClose} style={styles.buttonStyleDebug}>
-                <Text style={styles.buttonTextDebug}>Cancel</Text>
+              <TouchableOpacity onPress={onClose}>
+                <Ionicons name="close-circle-outline" size={36} color="#777" />
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleSave} disabled={!lesson.trim()} style={styles.buttonStyleDebug}>
-                <Text style={styles.buttonTextDebug}>Save</Text>
+              <TouchableOpacity onPress={handleSave} disabled={!lesson.trim()}>
+                <Ionicons
+                  name="checkmark-circle-outline"
+                  size={36}
+                  color={lesson.trim() ? '#007aff' : '#ccc'}
+                />
               </TouchableOpacity>
             </View>
           </View>
@@ -122,15 +126,5 @@ const styles = StyleSheet.create({
     padding: 16,
     borderTopWidth: 1,
     borderColor: '#eee',
-  },
-  buttonStyleDebug: { // Temporary button style
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 5,
-  },
-  buttonTextDebug: { // Temporary button text style
-    fontSize: 16,
-    color: '#333',
   },
 });
